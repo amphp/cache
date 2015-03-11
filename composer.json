@@ -1,0 +1,28 @@
+{
+  "name": "amphp/cache",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Niklas Keller",
+      "email": "me@kelunik.com"
+    }
+  ],
+  "support": {
+    "issues": "https://github.com/amphp/cache/issues"
+  },
+  "minimum-stability": "dev",
+  "require": {
+    "amphp/redis": "dev-master"
+  },
+  "repositories": [
+    {
+      "type": "git",
+      "url": "git@github.com:amphp/redis"
+    }
+  ],
+  "autoload": {
+    "psr-4": {
+      "Amp\\Cache\\": "lib/"
+    }
+  }
+}
