@@ -13,7 +13,7 @@ class Redis extends PrefixCache {
      * Constructs a new instance using the given client and key prefix.
      *
      * @param Client $client
-     * @param $keyPrefix
+     * @param $keyPrefix string
      */
     public function __construct (Client $client, $keyPrefix) {
         parent::__construct($keyPrefix);
