@@ -2,12 +2,10 @@
 
 namespace Amp\Cache;
 
-use InvalidArgumentException;
-
 abstract class PrefixCache implements Cache {
     protected $keyPrefix;
 
-    public function __construct ($keyPrefix) {
+    public function __construct($keyPrefix) {
         $this->setKeyPrefix($keyPrefix);
     }
 
@@ -16,9 +14,9 @@ abstract class PrefixCache implements Cache {
      *
      * @param $keyPrefix string
      */
-    public function setKeyPrefix ($keyPrefix) {
-        if (!is_string($keyPrefix)) {
-            throw new InvalidArgumentException(sprintf(
+    public function setKeyPrefix($keyPrefix) {
+        if (!\is_string($keyPrefix)) {
+            throw new \InvalidArgumentException(\sprintf(
                 "keyPrefix must be string, %s given",
                 gettype($keyPrefix)
             ));
@@ -32,7 +30,7 @@ abstract class PrefixCache implements Cache {
      *
      * @return string
      */
-    public function getKeyPrefix () {
+    public function getKeyPrefix() {
         return $this->keyPrefix;
     }
 }
