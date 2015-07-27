@@ -1,2 +1,4 @@
-/vendor
-/composer.lock
+coverage/
+composer.lock
+vendor/
+.idea

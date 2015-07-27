@@ -1,13 +1,30 @@
-#### Contribution Licensing
+## Submitting useful bug reports
 
-Any contribution intentionally submitted for inclusion in the Amp/Cache project
-shall be under the terms and conditions of the MIT License, without any
-additional terms or conditions. Not withstanding the above, nothing herein
-shall supersede or modify the terms of any separate license agreement you
-may have executed with the Amp/Cache project (or its licensor Niklas Keller)
-regarding such contributions.
+Please search existing issues first to make sure this is not a duplicate.
+Every issue report has a cost for the developers required to field it; be
+respectful of others' time and ensure your report isn't spurious prior to
+submission. Please adhere to [sound bug reporting principles](http://www.chiark.greenend.org.uk/~sgtatham/bugs.html).
 
-#### Before you PR ...
+## Development ideology
 
-Amp/Cache currently retains minimum compatibility with PHP 5.6. All source code
-contributions must execute successfully in this environment.
+Truths which we believe to be self-evident:
+
+- **It's an asynchronous world.**  Be wary of anything that undermines
+   async principles.
+
+- **The answer is not more options.**  If you feel compelled to expose
+   new preferences to the user it's very possible you've made a wrong
+   turn somewhere.
+
+- **There are no power users.** The idea that some users "understand"
+   concepts better than others has proven to be, for the most part, false.
+   If anything, "power users" are more dangerous than the rest, and we
+   should avoid exposing dangerous functionality to them.
+
+## Code style
+
+The amphp project adheres to the PSR-2 style guide with the exception that
+opening braces for classes and methods must appear on the same line as
+the declaration:
+
+https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-2-coding-style-guide.md
