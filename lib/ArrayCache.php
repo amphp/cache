@@ -7,27 +7,23 @@ use Amp\Success;
 use Amp\Failure;
 
 class ArrayCache implements Cache {
-    private $reactor;
     private $sharedState;
     private $ttlWatcherId;
 
     /**
      * By rebinding the TTL watcher to the shared state object we're
      * able to use __destruct() for "normal" garbage collection of
-     * both this instance and the reactor watcher. Otherwise this
-     * object could only be GC'd when the TTL watcher was cancelled
+     * both this instance and the reactor watcher callback. Otherwise
+     * this object could only be GC'd when the TTL watcher was cancelled
      * at the event reactor layer.
-     *
-     * @param \Amp\Reactor $reactor
      */
-    public function __construct(Reactor $reactor = null) {
-        $this->reactor = $reactor ?: \Amp\reactor();
+    public function __construct() {
         $this->sharedState = $sharedState = new \StdClass;
         $sharedState->now = null;
         $sharedState->cache = [];
         $sharedState->cacheTimeouts = [];
         $sharedState->isWatcherEnabled = false;
-        $ttlWatcher = function ($reactor, $ttlWatcherId) {
+        $ttlWatcher = function ($watcherId) {
             // xdebug doesn't seem to generate code coverage
             // for this closure ... it's annoying.
             // @codeCoverageIgnoreStart
@@ -43,21 +39,22 @@ class ArrayCache implements Cache {
                 }
             }
             if (empty($this->cacheTimeouts)) {
-                $reactor->disable($ttlWatcherId);
+                \Amp\disable($watcherId);
                 $this->isWatcherEnabled = false;
             }
             // @codeCoverageIgnoreEnd
         };
         $ttlWatcher = $ttlWatcher->bind($ttlWatcher, $sharedState);
-        $this->ttlWatcherId = $this->reactor->repeat($ttlWatcher, 1000, $options = [
+        $this->ttlWatcherId = \Amp\repeat($ttlWatcher, 1000, $options = [
             "enable" => false,
+            "keep_alive" => false,
         ]);
     }
 
     public function __destruct() {
         $this->sharedState->cache = [];
         $this->sharedState->cacheTimeouts = [];
-        $this->reactor->cancel($this->ttlWatcherId);
+        \Amp\cancel($this->ttlWatcherId);
     }
 
     /**
@@ -97,7 +94,7 @@ class ArrayCache implements Cache {
 
         $this->sharedState->cache[$key] = $value;
         if ($this->sharedState->cacheTimeouts && !$this->sharedState->isWatcherEnabled) {
-            $this->reactor->enable($this->ttlWatcherId);
+            \Amp\enable($this->ttlWatcherId);
             $this->sharedState->now = \time();
         }
 

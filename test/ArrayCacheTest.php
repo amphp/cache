@@ -2,7 +2,6 @@
 
 namespace Amp\Cache\Test;
 
-use Amp\NativeReactor;
 use Amp\Cache\ArrayCache;
 
 class ArrayCacheDestructorStub extends ArrayCache {
@@ -13,21 +12,21 @@ class ArrayCacheDestructorStub extends ArrayCache {
 }
 
 class ArrayCacheTest extends \PHPUnit_Framework_TestCase {
+    protected function setUp() {
+        \Amp\reactor(\Amp\driver());
+    }
 
     public function testGcWhenActiveCacheEntriesExists() {
         $this->expectOutputString("destruct");
-        $reactor = new NativeReactor;
-        $reactor->run(function ($reactor) {
-            $cache = new ArrayCacheDestructorStub($reactor);
+        \Amp\run(function () {
+            $cache = new ArrayCacheDestructorStub();
             $cache->set("mykey", "myvalue", 0);
         });
-        $info = $reactor->__debugInfo();
-        $this->assertSame(0, $info["timers"]);
     }
 
     public function testHas() {
-        (new NativeReactor)->run(function ($reactor) {
-            $cache = new ArrayCache($reactor);
+        \Amp\run(function () {
+            $cache = new ArrayCache;
 
             $promise = $cache->has("mykey");
             $this->assertInstanceOf("Amp\Success", $promise);
@@ -39,7 +38,6 @@ class ArrayCacheTest extends \PHPUnit_Framework_TestCase {
             yield $promise;
 
             $this->assertTrue(yield $cache->has("mykey"));
-            yield $cache->del("mykey");
         });
     }
 
@@ -48,35 +46,34 @@ class ArrayCacheTest extends \PHPUnit_Framework_TestCase {
      * @expectedExceptionMessage No cache entry exists at key "mykey"
      */
     public function testGetThrowsOnNonexistentKey() {
-        (new NativeReactor)->run(function ($reactor) {
-            $cache = new ArrayCache($reactor);
+        \Amp\run(function () {
+            $cache = new ArrayCache;
             $result = (yield $cache->get("mykey"));
         });
     }
 
     public function testGet() {
-        (new NativeReactor)->run(function ($reactor) {
-            $cache = new ArrayCache($reactor);
+        \Amp\run(function () {
+            $cache = new ArrayCache;
             yield $cache->set("mykey", "myvalue");
             $promise = $cache->get("mykey");
             $this->assertInstanceOf("Amp\Success", $promise);
             $this->assertSame("myvalue", (yield $promise));
-            yield $cache->del("mykey");
         });
     }
-    
+
     /**
      * @dataProvider provideBadTtls
      * @expectedException \DomainException
      * @expectedExceptionMessage Invalid cache TTL; integer >= 0 or null required
      */
     public function testSetFailsOnInvalidTtl($badTtl) {
-        (new NativeReactor)->run(function ($reactor) use ($badTtl) {
-            $cache = new ArrayCache($reactor);
+        \Amp\run(function () use ($badTtl) {
+            $cache = new ArrayCache;
             yield $cache->set("mykey", "myvalue", $badTtl);
         });
     }
-    
+
     public function provideBadTtls() {
         return [
             [-1],
@@ -85,21 +82,3 @@ class ArrayCacheTest extends \PHPUnit_Framework_TestCase {
         ];
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
