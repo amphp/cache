@@ -4,15 +4,14 @@ namespace Amp\Cache;
 
 use Amp\Redis\Client;
 
-class RedisCache extends PrefixCache {
+class RedisCache {
     /** @var Client */
     private $client;
 
     /**
      * {@inheritdoc}
      */
-    public function __construct(Client $client, $keyPrefix = "") {
-        parent::__construct($keyPrefix);
+    public function __construct(Client $client) {
         $this->client = $client;
     }
 
@@ -20,27 +19,27 @@ class RedisCache extends PrefixCache {
      * {@inheritdoc}
      */
     public function has($key) {
-        return $this->client->exists($this->keyPrefix . $key);
+        return $this->client->exists($key);
     }
 
     /**
      * {@inheritdoc}
      */
     public function get($key) {
-        return $this->client->get($this->keyPrefix . $key);
+        return $this->client->get($key);
     }
 
     /**
      * {@inheritdoc}
      */
     public function set($key, $value, $ttl = 0) {
-        return $this->client->set($this->keyPrefix . $key, $value, $ttl);
+        return $this->client->set($key, $value, $ttl);
     }
 
     /**
      * {@inheritdoc}
      */
     public function del($key) {
-        return $this->client->del($this->keyPrefix . $key);
+        return $this->client->del($key);
     }
 }
