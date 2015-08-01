@@ -1,6 +1,11 @@
 {
   "name": "amphp/cache",
+  "homepage": "https://github.com/amphp/cache",
+  "description": "A promise-aware caching API built on the amp concurrency framework",
   "license": "MIT",
+  "support": {
+    "issues": "https://github.com/amphp/cache/issues"
+  },
   "authors": [
     {
       "name": "Niklas Keller",
@@ -11,9 +16,6 @@
       "email": "rdlowrey@php.net"
     }
   ],
-  "support": {
-    "issues": "https://github.com/amphp/cache/issues"
-  },
   "require": {
     "amphp/amp": "^1"
   },
