@@ -9,6 +9,7 @@ php:
 
 before_script:
   - composer self-update
+  - composer require satooshi/php-coveralls:dev-master
   - composer install
 
 script:

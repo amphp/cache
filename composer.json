@@ -21,8 +21,7 @@
   },
   "require-dev": {
     "phpunit/phpunit": "~4.4.0",
-    "fabpot/php-cs-fixer": "~1.9",
-    "satooshi/php-coveralls": "dev-master"
+    "fabpot/php-cs-fixer": "~1.9"
   },
   "suggest": {
     "amphp/redis": "For redis cache driver support"
