@@ -20,7 +20,7 @@
     "amphp/amp": "^1"
   },
   "require-dev": {
-    "phpunit/phpunit": "~4.4.0",
+    "phpunit/phpunit": "~4.8",
     "fabpot/php-cs-fixer": "~1.9"
   },
   "suggest": {
