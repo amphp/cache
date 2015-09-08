@@ -31,13 +31,6 @@ abstract class PrefixCache implements Cache {
     /**
      * {@inheritdoc}
      */
-    public function has($key) {
-        return $this->cache->has($this->keyPrefix . $key);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     public function get($key) {
         return $this->cache->get($this->keyPrefix . $key);
     }

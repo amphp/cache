@@ -18,13 +18,6 @@ class RedisCache {
     /**
      * {@inheritdoc}
      */
-    public function has($key) {
-        return $this->client->exists($key);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     public function get($key) {
         return $this->client->get($key);
     }
@@ -32,8 +25,8 @@ class RedisCache {
     /**
      * {@inheritdoc}
      */
-    public function set($key, $value, $ttl = 0) {
-        return $this->client->set($key, $value, $ttl);
+    public function set($key, $value, $ttl = null) {
+        return $this->client->set($key, $value, $ttl === null ? 0 : $ttl);
     }
 
     /**

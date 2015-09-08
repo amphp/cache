@@ -24,53 +24,34 @@ class ArrayCacheTest extends \PHPUnit_Framework_TestCase {
         });
     }
 
-    public function testHas() {
-        \Amp\run(function () {
-            $cache = new ArrayCache;
-
-            $promise = $cache->has("mykey");
-            $this->assertInstanceOf("Amp\Success", $promise);
-            $result = (yield $promise);
-            $this->assertFalse($result);
-
-            $promise = $cache->set("mykey", "myvalue", 10);
-            $this->assertInstanceOf("Amp\Success", $promise);
-            yield $promise;
-
-            $this->assertTrue(yield $cache->has("mykey"));
-        });
-    }
-
-    /**
-     * @expectedException \DomainException
-     * @expectedExceptionMessage No cache entry exists at key "mykey"
-     */
-    public function testGetThrowsOnNonexistentKey() {
-        \Amp\run(function () {
-            $cache = new ArrayCache;
-            $result = (yield $cache->get("mykey"));
-        });
-    }
-
     public function testGet() {
         \Amp\run(function () {
             $cache = new ArrayCache;
-            yield $cache->set("mykey", "myvalue");
+
             $promise = $cache->get("mykey");
-            $this->assertInstanceOf("Amp\Success", $promise);
-            $this->assertSame("myvalue", (yield $promise));
+            $this->assertInstanceOf("Amp\\Success", $promise);
+            $result = (yield $promise);
+            $this->assertNull($result);
+
+            $promise = $cache->set("mykey", "myvalue", 10);
+            $this->assertInstanceOf("Amp\\Success", $promise);
+            yield $promise;
+
+            $result = yield $cache->get("mykey");
+            $this->assertNotNull($result);
+            $this->assertSame("myvalue", $result);
         });
     }
 
     /**
      * @dataProvider provideBadTtls
-     * @expectedException \DomainException
+     * @expectedException \InvalidArgumentException
      * @expectedExceptionMessage Invalid cache TTL; integer >= 0 or null required
      */
     public function testSetFailsOnInvalidTtl($badTtl) {
         \Amp\run(function () use ($badTtl) {
             $cache = new ArrayCache;
-            yield $cache->set("mykey", "myvalue", $badTtl);
+            $cache->set("mykey", "myvalue", $badTtl);
         });
     }
 

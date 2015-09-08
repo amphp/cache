@@ -2,6 +2,9 @@
 
 namespace Amp\Cache;
 
+use Amp\Success;
+use InvalidArgumentException;
+
 class ArrayCache implements Cache {
     private $sharedState;
     private $ttlWatcherId;
@@ -21,7 +24,7 @@ class ArrayCache implements Cache {
         $sharedState->cache = [];
         $sharedState->cacheTimeouts = [];
         $sharedState->isSortNeeded = false;
-        $ttlWatcher = function ($watcherId) {
+        $ttlWatcher = function () {
             // xdebug doesn't seem to generate code coverage
             // for this closure ... it's annoying.
             // @codeCoverageIgnoreStart
@@ -58,63 +61,57 @@ class ArrayCache implements Cache {
     /**
      * {@inheritdoc}
      */
-    public function has($key) {
-        if (!\array_key_exists($key, $this->sharedState->cache)) {
-            $exists = false;
-        } elseif (\time() > $this->sharedState->cacheTimeouts[$key]) {
+    public function get($key) {
+        if (!isset($this->sharedState->cache[$key])) {
+            return new Success(null);
+        }
+
+        if (\time() > $this->sharedState->cacheTimeouts[$key]) {
             unset(
                 $this->sharedState->cache[$key],
                 $this->sharedState->cacheTimeouts[$key]
             );
-            $exists = false;
-        } else {
-            $exists = true;
+
+            return new Success(null);
         }
 
-        return new \Amp\Success($exists);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function get($key) {
-        return (isset($this->sharedState->cache[$key]) || array_key_exists($key, $this->sharedState->cache))
-            ? new \Amp\Success($this->sharedState->cache[$key])
-            : new \Amp\Failure(new \DomainException(
-                "No cache entry exists at key \"{$key}\""
-            ));
+        return new Success($this->sharedState->cache[$key]);
     }
 
     /**
      * {@inheritdoc}
      */
     public function set($key, $value, $ttl = null) {
-        if (!isset($ttl)) {
+        if ($value === null) {
+            throw new InvalidArgumentException("NULL is not allowed to be stored");
+        }
+
+        if ($ttl === null) {
             unset($this->sharedState->cacheTimeouts[$key]);
         } elseif (\is_int($ttl) && $ttl >= 0) {
             $expiry = \time() + $ttl;
             $this->sharedState->cacheTimeouts[$key] = $expiry;
             $this->sharedState->isSortNeeded = true;
         } else {
-            return new \Amp\Failure(new \DomainException(
-                "Invalid cache TTL; integer >= 0 or null required"
-            ));
+            throw new InvalidArgumentException("Invalid cache TTL; integer >= 0 or null required");
         }
 
         $this->sharedState->cache[$key] = $value;
 
-        return new \Amp\Success;
+        return new Success;
     }
 
     /**
      * {@inheritdoc}
      */
     public function del($key) {
+        $exists = isset($this->sharedState->cache[$key]);
+
         unset(
             $this->sharedState->cache[$key],
             $this->sharedState->cacheTimeouts[$key]
         );
 
-        return new \Amp\Success($exists);
+        return new Success($exists);
     }
 }
