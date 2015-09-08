@@ -37,7 +37,7 @@ class ArrayCacheTest extends \PHPUnit_Framework_TestCase {
             $this->assertInstanceOf("Amp\\Success", $promise);
             yield $promise;
 
-            $result = yield $cache->get("mykey");
+            $result = (yield $cache->get("mykey"));
             $this->assertNotNull($result);
             $this->assertSame("myvalue", $result);
         });
