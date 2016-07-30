@@ -9,7 +9,7 @@ interface Cache {
      * If the specified key doesn't exist implementations MUST succeed the resulting promise with NULL.
      *
      * @param $key string
-     * @return \Amp\Promise
+     * @return \Interop\Async\Awaitable
      */
     public function get($key);
 
@@ -27,7 +27,7 @@ interface Cache {
      * @param $key string
      * @param $value string
      * @param $ttl int
-     * @return \Amp\Promise
+     * @return \Interop\Async\Awaitable
      */
     public function set($key, $value, $ttl = null);
 
@@ -42,7 +42,7 @@ interface Cache {
      * Implementations MUST transparently succeed operations for non-existent keys.
      *
      * @param $key string
-     * @return \Amp\Promise
+     * @return \Interop\Async\Awaitable
      */
     public function del($key);
 }

@@ -4,6 +4,7 @@ namespace Amp\Cache;
 
 use Amp\Success;
 use InvalidArgumentException;
+use Interop\Async\Loop;
 
 class ArrayCache implements Cache {
     private $sharedState;
@@ -46,16 +47,14 @@ class ArrayCache implements Cache {
             // @codeCoverageIgnoreEnd
         };
         $ttlWatcher = $ttlWatcher->bind($ttlWatcher, $sharedState);
-        $this->ttlWatcherId = \Amp\repeat($ttlWatcher, $gcInterval, $options = [
-            "enable" => true,
-            "keep_alive" => false,
-        ]);
+        $this->ttlWatcherId = Loop::repeat($gcInterval, $ttlWatcher);
+        Loop::unreference($this->ttlWatcherId);
     }
 
     public function __destruct() {
         $this->sharedState->cache = [];
         $this->sharedState->cacheTimeouts = [];
-        \Amp\cancel($this->ttlWatcherId);
+        Loop::cancel($this->ttlWatcherId);
     }
 
     /**

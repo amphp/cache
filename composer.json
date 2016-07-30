@@ -17,9 +17,12 @@
     }
   ],
   "require": {
-    "amphp/amp": "^1"
+    "amphp/amp": "dev-master as 2.0"
   },
+  "minimum-stability": "dev",
+  "prefer-stable": true,
   "require-dev": {
+    "amphp/loop": "dev-master",
     "phpunit/phpunit": "~4.8",
     "fabpot/php-cs-fixer": "~1.9"
   },
