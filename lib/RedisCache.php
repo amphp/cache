@@ -3,8 +3,9 @@
 namespace Amp\Cache;
 
 use Amp\Redis\Client;
+use Interop\Async\Promise;
 
-class RedisCache {
+class RedisCache implements Cache {
     /** @var Client */
     private $client;
 
@@ -18,21 +19,21 @@ class RedisCache {
     /**
      * {@inheritdoc}
      */
-    public function get($key) {
+    public function get(string $key): Promise {
         return $this->client->get($key);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function set($key, $value, $ttl = null) {
+    public function set(string $key, $value, int $ttl = null): Promise {
         return $this->client->set($key, $value, $ttl === null ? 0 : $ttl);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function del($key) {
+    public function del(string $key): Promise {
         return $this->client->del($key);
     }
 }

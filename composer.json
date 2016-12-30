@@ -23,8 +23,8 @@
   "prefer-stable": true,
   "require-dev": {
     "amphp/loop": "dev-master",
-    "phpunit/phpunit": "~4.8",
-    "fabpot/php-cs-fixer": "~1.9"
+    "phpunit/phpunit": "^5",
+    "friendsofphp/php-cs-fixer": "~1.9"
   },
   "suggest": {
     "amphp/redis": "For redis cache driver support"

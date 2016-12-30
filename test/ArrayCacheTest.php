@@ -51,8 +51,7 @@ class ArrayCacheTest extends \PHPUnit_Framework_TestCase {
 
     /**
      * @dataProvider provideBadTtls
-     * @expectedException \InvalidArgumentException
-     * @expectedExceptionMessage Invalid cache TTL; integer >= 0 or null required
+     * @expectedException \Error
      */
     public function testSetFailsOnInvalidTtl($badTtl) {
         $this->loop(function () use ($badTtl) {

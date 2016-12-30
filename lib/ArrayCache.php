@@ -3,8 +3,7 @@
 namespace Amp\Cache;
 
 use Amp\Success;
-use InvalidArgumentException;
-use Interop\Async\Loop;
+use Interop\Async\{ Loop, Promise };
 
 class ArrayCache implements Cache {
     private $sharedState;
@@ -60,7 +59,7 @@ class ArrayCache implements Cache {
     /**
      * {@inheritdoc}
      */
-    public function get($key) {
+    public function get(string $key): Promise {
         if (!isset($this->sharedState->cache[$key])) {
             return new Success(null);
         }
@@ -80,9 +79,9 @@ class ArrayCache implements Cache {
     /**
      * {@inheritdoc}
      */
-    public function set($key, $value, $ttl = null) {
+    public function set(string $key, $value, int $ttl = null): Promise {
         if ($value === null) {
-            throw new InvalidArgumentException("NULL is not allowed to be stored");
+            throw new \Error("NULL is not allowed to be stored");
         }
 
         if ($ttl === null) {
@@ -92,7 +91,7 @@ class ArrayCache implements Cache {
             $this->sharedState->cacheTimeouts[$key] = $expiry;
             $this->sharedState->isSortNeeded = true;
         } else {
-            throw new InvalidArgumentException("Invalid cache TTL; integer >= 0 or null required");
+            throw new \Error("Invalid cache TTL; integer >= 0 or null required");
         }
 
         $this->sharedState->cache[$key] = $value;
@@ -103,7 +102,7 @@ class ArrayCache implements Cache {
     /**
      * {@inheritdoc}
      */
-    public function del($key) {
+    public function del(string $key): Promise {
         $exists = isset($this->sharedState->cache[$key]);
 
         unset(

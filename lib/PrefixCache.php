@@ -2,6 +2,8 @@
 
 namespace Amp\Cache;
 
+use Interop\Async\Promise;
+
 abstract class PrefixCache implements Cache {
     private $cache;
     private $keyPrefix;
@@ -24,28 +26,28 @@ abstract class PrefixCache implements Cache {
      *
      * @return string
      */
-    public function getKeyPrefix() {
+    public function getKeyPrefix(): string {
         return $this->keyPrefix;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function get($key) {
+    public function get(string $key): Promise {
         return $this->cache->get($this->keyPrefix . $key);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function set($key, $value, $ttl = null) {
+    public function set(string $key, $value, int $ttl = null): Promise {
         return $this->cache->set($this->keyPrefix . $key, $value, $ttl);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function del($key) {
+    public function del(string $key): Promise {
         return $this->cache->del($this->keyPrefix . $key);
     }
 }
