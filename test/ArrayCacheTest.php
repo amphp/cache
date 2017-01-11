@@ -3,7 +3,7 @@
 namespace Amp\Cache\Test;
 
 use Amp\Cache\ArrayCache;
-use Interop\Async\Loop;
+use AsyncInterop\Loop;
 
 class ArrayCacheDestructorStub extends ArrayCache {
     public function __destruct() {
@@ -14,14 +14,14 @@ class ArrayCacheDestructorStub extends ArrayCache {
 
 class ArrayCacheTest extends \PHPUnit_Framework_TestCase {
     public function loop($cb) {
-        \Interop\Async\Loop::execute(function() use ($cb) {
+        Loop::execute(function() use ($cb) {
             $gen = $cb();
             if ($gen instanceof \Generator) {
                 \Amp\rethrow(new \Amp\Coroutine($gen));
             }
         });
     }
-    
+
     public function testGcWhenActiveCacheEntriesExists() {
         $this->expectOutputString("destruct");
         $this->loop(function () {

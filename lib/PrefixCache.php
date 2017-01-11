@@ -2,7 +2,7 @@
 
 namespace Amp\Cache;
 
-use Interop\Async\Promise;
+use AsyncInterop\Promise;
 
 abstract class PrefixCache implements Cache {
     private $cache;
