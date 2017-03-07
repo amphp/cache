@@ -14,7 +14,7 @@ interface Cache {
     public function get($key);
 
     /**
-     * Sets a value associated with the given key. Overrides existing values (if they exist).
+     * Sets a value associated with the given key. Overrides an existing value (if one exists).
      *
      * Implementations MUST NOT accept NULL as value as it's reserved for missing values and
      * should not have any other meaning. TTL values are measured in seconds.
