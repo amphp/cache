@@ -14,10 +14,10 @@ class ArrayCacheDestructorStub extends ArrayCache {
 
 class ArrayCacheTest extends \PHPUnit_Framework_TestCase {
     public function loop($cb) {
-        Loop::execute(function() use ($cb) {
+        Loop::run(function() use ($cb) {
             $gen = $cb();
             if ($gen instanceof \Generator) {
-                \Amp\rethrow(new \Amp\Coroutine($gen));
+                \Amp\Promise\rethrow(new \Amp\Coroutine($gen));
             }
         });
     }
