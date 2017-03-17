@@ -3,7 +3,7 @@
 namespace Amp\Cache;
 
 use Amp\Redis\Client;
-use AsyncInterop\Promise;
+use Amp\Promise;
 
 class RedisCache implements Cache {
     /** @var Client */

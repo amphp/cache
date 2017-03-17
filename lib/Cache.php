@@ -2,7 +2,7 @@
 
 namespace Amp\Cache;
 
-use AsyncInterop\Promise;
+use Amp\Promise;
 
 interface Cache {
     /**
@@ -11,7 +11,7 @@ interface Cache {
      * If the specified key doesn't exist implementations MUST succeed the resulting promise with NULL.
      *
      * @param $key string
-     * @return \AsyncInterop\Promise
+     * @return \Amp\Promise
      */
     public function get(string $key): Promise;
 
@@ -29,7 +29,7 @@ interface Cache {
      * @param $key string
      * @param $value string
      * @param $ttl int
-     * @return \AsyncInterop\Promise
+     * @return \Amp\Promise
      */
     public function set(string $key, $value, int $ttl = null): Promise;
 
@@ -44,7 +44,7 @@ interface Cache {
      * Implementations MUST transparently succeed operations for non-existent keys.
      *
      * @param $key string
-     * @return \AsyncInterop\Promise
+     * @return \Amp\Promise
      */
     public function del(string $key): Promise;
 }

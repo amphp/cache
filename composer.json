@@ -17,13 +17,11 @@
     }
   ],
   "require": {
-    "amphp/amp": "dev-master as 2.0",
-    "async-interop/event-loop": "^0.5"
+    "amphp/amp": "dev-master as 2.0"
   },
   "minimum-stability": "dev",
   "prefer-stable": true,
   "require-dev": {
-    "amphp/loop": "dev-master",
     "phpunit/phpunit": "^5",
     "friendsofphp/php-cs-fixer": "~1.9"
   },

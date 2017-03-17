@@ -3,7 +3,7 @@
 namespace Amp\Cache\Test;
 
 use Amp\Cache\ArrayCache;
-use AsyncInterop\Loop;
+use Amp\Loop;
 
 class ArrayCacheDestructorStub extends ArrayCache {
     public function __destruct() {

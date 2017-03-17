@@ -2,8 +2,7 @@
 
 namespace Amp\Cache;
 
-use Amp\Success;
-use AsyncInterop\{ Loop, Promise };
+use Amp\{ Loop, Promise, Success };
 
 class ArrayCache implements Cache {
     private $sharedState;
