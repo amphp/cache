@@ -52,7 +52,9 @@ class ArrayCache implements Cache {
     public function __destruct() {
         $this->sharedState->cache = [];
         $this->sharedState->cacheTimeouts = [];
-        Loop::cancel($this->ttlWatcherId);
+        if($this->ttlWatcherId) {
+            Loop::cancel($this->ttlWatcherId);
+        }
     }
 
     /**
