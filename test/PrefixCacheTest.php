@@ -4,9 +4,10 @@ namespace Amp\Cache\Test;
 
 use Amp\Cache\ArrayCache;
 use Amp\Cache\Cache;
+use Amp\Cache\PrefixCache;
 
-class ArrayCacheTest extends CacheTest {
+class PrefixCacheTest extends CacheTest {
     protected function createCache(): Cache {
-        return new ArrayCache;
+        return new PrefixCache(new ArrayCache, "prefix.");
     }
 }

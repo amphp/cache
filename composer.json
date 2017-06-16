@@ -30,7 +30,12 @@
     },
     "autoload": {
         "psr-4": {
-            "Amp\\Cache\\": "lib/"
+            "Amp\\Cache\\": "lib"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Amp\\Cache\\Test\\": "test"
         }
     }
 }
