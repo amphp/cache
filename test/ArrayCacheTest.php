@@ -11,14 +11,47 @@ class ArrayCacheTest extends TestCase {
         Loop::run(function () {
             $cache = new ArrayCache;
 
-            $promise = $cache->get("mykey");
-            $result = yield $promise;
+            $result = yield $cache->get("mykey");
             $this->assertNull($result);
 
             yield $cache->set("mykey", "myvalue", 10);
 
             $result = yield $cache->get("mykey");
             $this->assertSame("myvalue", $result);
+        });
+    }
+
+    public function testEntryIsntReturnedAfterTTLHasPassed() {
+        Loop::run(function () {
+            $cache = new ArrayCache;
+
+            yield $cache->set("foo", "bar", 0);
+            sleep(1);
+
+            $this->assertNull(yield $cache->get("foo"));
+        });
+    }
+
+    public function testEntryIsReturnedWhenOverriddenWithNoTimeout() {
+        Loop::run(function () {
+            $cache = new ArrayCache;
+
+            yield $cache->set("foo", "bar", 0);
+            yield $cache->set("foo", "bar");
+            sleep(1);
+
+            $this->assertNotNull(yield $cache->get("foo"));
+        });
+    }
+
+    public function testEntryIsntReturnedAfterDelete() {
+        Loop::run(function () {
+            $cache = new ArrayCache;
+
+            yield $cache->set("foo", "bar");
+            yield $cache->delete("foo");
+
+            $this->assertNull(yield $cache->get("foo"));
         });
     }
 

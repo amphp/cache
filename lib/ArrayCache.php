@@ -62,7 +62,7 @@ final class ArrayCache implements Cache {
             return new Success(null);
         }
 
-        if (\time() > $this->sharedState->cacheTimeouts[$key]) {
+        if (isset($this->sharedState->cacheTimeouts[$key]) && \time() > $this->sharedState->cacheTimeouts[$key]) {
             unset(
                 $this->sharedState->cache[$key],
                 $this->sharedState->cacheTimeouts[$key]
