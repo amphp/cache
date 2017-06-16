@@ -25,9 +25,6 @@
         "phpunit/phpunit": "^6",
         "friendsofphp/php-cs-fixer": "^2.3"
     },
-    "suggest": {
-        "amphp/redis": "For redis cache driver support"
-    },
     "autoload": {
         "psr-4": {
             "Amp\\Cache\\": "lib"
