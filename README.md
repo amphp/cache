@@ -16,4 +16,3 @@ composer require amphp/cache
 ## TODO
 
 - Add filesystem caching driver using `amphp/file`
-- Add more test coverage
