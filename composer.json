@@ -1,36 +1,36 @@
 {
-  "name": "amphp/cache",
-  "homepage": "https://github.com/amphp/cache",
-  "description": "A promise-aware caching API built on the amp concurrency framework",
-  "license": "MIT",
-  "support": {
-    "issues": "https://github.com/amphp/cache/issues"
-  },
-  "authors": [
-    {
-      "name": "Niklas Keller",
-      "email": "me@kelunik.com"
+    "name": "amphp/cache",
+    "homepage": "https://github.com/amphp/cache",
+    "description": "A promise-aware caching API for Amp.",
+    "license": "MIT",
+    "support": {
+        "issues": "https://github.com/amphp/cache/issues",
+        "irc": "irc://irc.freenode.org/amphp"
     },
-    {
-      "name": "Daniel Lowrey",
-      "email": "rdlowrey@php.net"
+    "authors": [
+        {
+            "name": "Niklas Keller",
+            "email": "me@kelunik.com"
+        },
+        {
+            "name": "Daniel Lowrey",
+            "email": "rdlowrey@php.net"
+        }
+    ],
+    "require": {
+        "amphp/amp": "^2"
+    },
+    "require-dev": {
+        "amphp/phpunit-util": "^1",
+        "phpunit/phpunit": "^6",
+        "friendsofphp/php-cs-fixer": "^2.3"
+    },
+    "suggest": {
+        "amphp/redis": "For redis cache driver support"
+    },
+    "autoload": {
+        "psr-4": {
+            "Amp\\Cache\\": "lib/"
+        }
     }
-  ],
-  "require": {
-    "amphp/amp": "dev-master as 2.0"
-  },
-  "minimum-stability": "dev",
-  "prefer-stable": true,
-  "require-dev": {
-    "phpunit/phpunit": "^5",
-    "friendsofphp/php-cs-fixer": "~1.9"
-  },
-  "suggest": {
-    "amphp/redis": "For redis cache driver support"
-  },
-  "autoload": {
-    "psr-4": {
-      "Amp\\Cache\\": "lib/"
-    }
-  }
 }

@@ -1,4 +1,4 @@
-coverage/
-composer.lock
-vendor/
-.idea
+/coverage
+/composer.lock
+/vendor
+/.php_cs.cache

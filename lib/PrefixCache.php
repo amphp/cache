@@ -4,25 +4,17 @@ namespace Amp\Cache;
 
 use Amp\Promise;
 
-abstract class PrefixCache implements Cache {
+final class PrefixCache implements Cache {
     private $cache;
     private $keyPrefix;
 
-    public function __construct(Cache $cache, $keyPrefix) {
-        // @TODO Remove this check once PHP7 is required and use a scalar param type
-        if (!\is_string($keyPrefix)) {
-            throw new \InvalidArgumentException(\sprintf(
-                "keyPrefix must be string, %s given",
-                \gettype($keyPrefix)
-            ));
-        }
-
+    public function __construct(Cache $cache, string $keyPrefix) {
         $this->cache = $cache;
         $this->keyPrefix = $keyPrefix;
     }
 
     /**
-     * Gets the current prefix.
+     * Gets the specified key prefix.
      *
      * @return string
      */
@@ -30,24 +22,18 @@ abstract class PrefixCache implements Cache {
         return $this->keyPrefix;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    /** @inheritdoc */
     public function get(string $key): Promise {
         return $this->cache->get($this->keyPrefix . $key);
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function set(string $key, $value, int $ttl = null): Promise {
+    /** @inheritdoc */
+    public function set(string $key, string $value, int $ttl = null): Promise {
         return $this->cache->set($this->keyPrefix . $key, $value, $ttl);
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function del(string $key): Promise {
-        return $this->cache->del($this->keyPrefix . $key);
+    /** @inheritdoc */
+    public function delete(string $key): Promise {
+        return $this->cache->delete($this->keyPrefix . $key);
     }
 }

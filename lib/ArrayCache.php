@@ -2,50 +2,51 @@
 
 namespace Amp\Cache;
 
-use Amp\{ Loop, Promise, Success };
+use Amp\Loop;
+use Amp\Promise;
+use Amp\Struct;
+use Amp\Success;
 
-class ArrayCache implements Cache {
+final class ArrayCache implements Cache {
     private $sharedState;
     private $ttlWatcherId;
 
     /**
-     * By using a rebound TTL watcher with a shared state object we're
-     * able to use __destruct() for "normal" garbage collection of
-     * both this instance and the reactor watcher callback. Otherwise
-     * this object could only be GC'd when the TTL watcher was cancelled
-     * at the event reactor layer.
-     *
-     * @param int $gcInterval The frequency in milliseconds at which expired
-     *                        cache entries should be garbage collected
+     * @param int $gcInterval The frequency in milliseconds at which expired cache entries should be garbage collected.
      */
     public function __construct($gcInterval = 5000) {
-        $this->sharedState = $sharedState = new \StdClass;
-        $sharedState->cache = [];
-        $sharedState->cacheTimeouts = [];
-        $sharedState->isSortNeeded = false;
-        $ttlWatcher = function () {
-            // xdebug doesn't seem to generate code coverage
-            // for this closure ... it's annoying.
-            // @codeCoverageIgnoreStart
-            $now = \time();
-            if ($this->isSortNeeded) {
-                \asort($this->cacheTimeouts);
-                $this->isSortNeeded = false;
-            }
-            foreach ($this->cacheTimeouts as $key => $expiry) {
-                if ($now > $expiry) {
+        // By using a shared state object we're able to use `__destruct()` for "normal" garbage collection of both this
+        // instance and the loop's watcher. Otherwise this object could only be GC'd when the TTL watcher was cancelled
+        // at the loop layer.
+        $this->sharedState = $sharedState = new class {
+            use Struct;
+
+            public $cache = [];
+            public $cacheTimeouts = [];
+            public $isSortNeeded = false;
+
+            public function collectGarbage() {
+                $now = \time();
+
+                if ($this->isSortNeeded) {
+                    \asort($this->cacheTimeouts);
+                    $this->isSortNeeded = false;
+                }
+
+                foreach ($this->cacheTimeouts as $key => $expiry) {
+                    if ($now <= $expiry) {
+                        break;
+                    }
+
                     unset(
                         $this->cache[$key],
                         $this->cacheTimeouts[$key]
                     );
-                } else {
-                    break;
                 }
             }
-            // @codeCoverageIgnoreEnd
         };
-        $ttlWatcher = $ttlWatcher->bind($ttlWatcher, $sharedState);
-        $this->ttlWatcherId = Loop::repeat($gcInterval, $ttlWatcher);
+
+        $this->ttlWatcherId = Loop::repeat($gcInterval, [$sharedState, "collectGarbage"]);
         Loop::unreference($this->ttlWatcherId);
     }
 
@@ -55,9 +56,7 @@ class ArrayCache implements Cache {
         Loop::cancel($this->ttlWatcherId);
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    /** @inheritdoc */
     public function get(string $key): Promise {
         if (!isset($this->sharedState->cache[$key])) {
             return new Success(null);
@@ -75,14 +74,8 @@ class ArrayCache implements Cache {
         return new Success($this->sharedState->cache[$key]);
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function set(string $key, $value, int $ttl = null): Promise {
-        if ($value === null) {
-            throw new \Error("NULL is not allowed to be stored");
-        }
-
+    /** @inheritdoc */
+    public function set(string $key, string $value, int $ttl = null): Promise {
         if ($ttl === null) {
             unset($this->sharedState->cacheTimeouts[$key]);
         } elseif (\is_int($ttl) && $ttl >= 0) {
@@ -90,7 +83,7 @@ class ArrayCache implements Cache {
             $this->sharedState->cacheTimeouts[$key] = $expiry;
             $this->sharedState->isSortNeeded = true;
         } else {
-            throw new \Error("Invalid cache TTL; integer >= 0 or null required");
+            throw new \Error("Invalid cache TTL ({$ttl}; integer >= 0 or null required");
         }
 
         $this->sharedState->cache[$key] = $value;
@@ -98,10 +91,8 @@ class ArrayCache implements Cache {
         return new Success;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function del(string $key): Promise {
+    /** @inheritdoc */
+    public function delete(string $key): Promise {
         $exists = isset($this->sharedState->cache[$key]);
 
         unset(
