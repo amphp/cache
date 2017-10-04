@@ -89,7 +89,7 @@ final class ArrayCache implements Cache {
             throw new \Error("Invalid cache TTL ({$ttl}; integer >= 0 or null required");
         }
         unset($this->sharedState->cache[$key]);
-        if (count($this->sharedState->cache) >= $this->maxSize) {
+        if (count($this->sharedState->cache) === $this->maxSize) {
             array_shift($this->sharedState->cache);
         }
         $this->sharedState->cache[$key] = $value;
