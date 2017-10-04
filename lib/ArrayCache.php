@@ -10,11 +10,13 @@ use Amp\Success;
 final class ArrayCache implements Cache {
     private $sharedState;
     private $ttlWatcherId;
+    private $maxSize;
 
     /**
      * @param int $gcInterval The frequency in milliseconds at which expired cache entries should be garbage collected.
+     * @param int $maxSize The maximum size of cache array (number of elements).
      */
-    public function __construct($gcInterval = 5000) {
+    public function __construct(int $gcInterval = 5000, int $maxSize = null) {
         // By using a shared state object we're able to use `__destruct()` for "normal" garbage collection of both this
         // instance and the loop's watcher. Otherwise this object could only be GC'd when the TTL watcher was cancelled
         // at the loop layer.
@@ -47,6 +49,7 @@ final class ArrayCache implements Cache {
         };
 
         $this->ttlWatcherId = Loop::repeat($gcInterval, [$sharedState, "collectGarbage"]);
+        $this->maxSize = $maxSize;
         Loop::unreference($this->ttlWatcherId);
     }
 
@@ -85,7 +88,10 @@ final class ArrayCache implements Cache {
         } else {
             throw new \Error("Invalid cache TTL ({$ttl}; integer >= 0 or null required");
         }
-
+        unset($this->sharedState->cache[$key]);
+        if (count($this->sharedState->cache) === $this->maxSize) {
+            array_shift($this->sharedState->cache);
+        }
         $this->sharedState->cache[$key] = $value;
 
         return new Success;
