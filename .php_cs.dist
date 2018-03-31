@@ -1,6 +1,9 @@
 <?php
 
+$cacheDir = getenv("TRAVIS") ? getenv("HOME") . "/.php-cs-fixer" : __DIR__;
+
 return PhpCsFixer\Config::create()
+    ->setCacheFile($cacheDir . "/.php_cs.cache")
     ->setRiskyAllowed(true)
     ->setRules([
         "@PSR1" => true,
@@ -36,4 +39,5 @@ return PhpCsFixer\Config::create()
         PhpCsFixer\Finder::create()
             ->in(__DIR__ . "/lib")
             ->in(__DIR__ . "/test")
-    );
+            ->exclude(__DIR__ . "/vendor")
+);

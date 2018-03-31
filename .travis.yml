@@ -15,7 +15,7 @@ matrix:
 before_script:
   # --ignore-platform-reqs, because https://github.com/FriendsOfPHP/PHP-CS-Fixer/pull/2722
   - composer update -n --prefer-dist --ignore-platform-reqs
-  - composer require satooshi/php-coveralls dev-master --ignore-platform-reqs
+  - composer require satooshi/php-coveralls '^2.0' --ignore-platform-reqs
 
 script:
   - phpdbg -qrr vendor/bin/phpunit --coverage-text --coverage-clover build/logs/clover.xml
@@ -27,3 +27,4 @@ after_script:
 cache:
   directories:
     - $HOME/.composer/cache/files
+    - $HOME/.php-cs-fixer
