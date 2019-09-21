@@ -59,11 +59,13 @@ abstract class CacheTest extends TestCase {
 
     /**
      * @dataProvider provideBadTTLs
-     * @expectedException \Error
      */
     public function testSetFailsOnInvalidTTL($badTTL) {
         Loop::run(function () use ($badTTL) {
             $cache = $this->createCache();
+
+            $this->expectException(\Error::class);
+
             $cache->set("mykey", "myvalue", $badTTL);
         });
     }

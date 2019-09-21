@@ -22,7 +22,7 @@
     },
     "require-dev": {
         "amphp/phpunit-util": "^1",
-        "phpunit/phpunit": "^6",
+        "phpunit/phpunit": "^6 | ^7 | ^8",
         "friendsofphp/php-cs-fixer": "^2.3"
     },
     "autoload": {
