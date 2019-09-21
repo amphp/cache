@@ -4,7 +4,8 @@ namespace Amp\Cache;
 
 use Amp\Promise;
 
-interface Cache {
+interface Cache
+{
     /**
      * Gets a value associated with the given key.
      *

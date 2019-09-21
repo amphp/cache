@@ -6,10 +6,12 @@ use Amp\Cache\Cache;
 use Amp\Loop;
 use PHPUnit\Framework\TestCase;
 
-abstract class CacheTest extends TestCase {
+abstract class CacheTest extends TestCase
+{
     abstract protected function createCache(): Cache;
 
-    public function testGet() {
+    public function testGet()
+    {
         Loop::run(function () {
             $cache = $this->createCache();
 
@@ -23,30 +25,33 @@ abstract class CacheTest extends TestCase {
         });
     }
 
-    public function testEntryIsntReturnedAfterTTLHasPassed() {
+    public function testEntryIsntReturnedAfterTTLHasPassed()
+    {
         Loop::run(function () {
             $cache = $this->createCache();
 
             yield $cache->set("foo", "bar", 0);
-            sleep(1);
+            \sleep(1);
 
             $this->assertNull(yield $cache->get("foo"));
         });
     }
 
-    public function testEntryIsReturnedWhenOverriddenWithNoTimeout() {
+    public function testEntryIsReturnedWhenOverriddenWithNoTimeout()
+    {
         Loop::run(function () {
             $cache = $this->createCache();
 
             yield $cache->set("foo", "bar", 0);
             yield $cache->set("foo", "bar");
-            sleep(1);
+            \sleep(1);
 
             $this->assertNotNull(yield $cache->get("foo"));
         });
     }
 
-    public function testEntryIsntReturnedAfterDelete() {
+    public function testEntryIsntReturnedAfterDelete()
+    {
         Loop::run(function () {
             $cache = $this->createCache();
 
@@ -60,7 +65,8 @@ abstract class CacheTest extends TestCase {
     /**
      * @dataProvider provideBadTTLs
      */
-    public function testSetFailsOnInvalidTTL($badTTL) {
+    public function testSetFailsOnInvalidTTL($badTTL)
+    {
         Loop::run(function () use ($badTTL) {
             $cache = $this->createCache();
 
@@ -70,7 +76,8 @@ abstract class CacheTest extends TestCase {
         });
     }
 
-    public function provideBadTTLs() {
+    public function provideBadTTLs()
+    {
         return [
             [-1],
             [new \StdClass],

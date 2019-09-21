@@ -6,12 +6,15 @@ use Amp\Cache\ArrayCache;
 use Amp\Cache\Cache;
 use Amp\Loop;
 
-class ArrayCacheLimitedTest extends CacheTest {
-    protected function createCache(): Cache {
+class ArrayCacheLimitedTest extends CacheTest
+{
+    protected function createCache(): Cache
+    {
         return new ArrayCache(5000, 5);
     }
 
-    public function testEntryIsntReturnedAfterCacheLimitReached() {
+    public function testEntryIsntReturnedAfterCacheLimitReached()
+    {
         Loop::run(function () {
             $cache = $this->createCache();
 

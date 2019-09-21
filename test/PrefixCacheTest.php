@@ -6,13 +6,16 @@ use Amp\Cache\ArrayCache;
 use Amp\Cache\Cache;
 use Amp\Cache\PrefixCache;
 
-class PrefixCacheTest extends CacheTest {
+class PrefixCacheTest extends CacheTest
+{
     /** @return PrefixCache */
-    protected function createCache(): Cache {
+    protected function createCache(): Cache
+    {
         return new PrefixCache(new ArrayCache, "prefix.");
     }
 
-    public function testPrefix() {
+    public function testPrefix()
+    {
         $this->assertSame("prefix.", $this->createCache()->getKeyPrefix());
     }
 }
