@@ -18,12 +18,15 @@
         }
     ],
     "require": {
-        "amphp/amp": "^2"
+        "php": ">=7.1",
+        "amphp/amp": "^2",
+        "amphp/sync": "^1.2"
     },
     "require-dev": {
         "amphp/phpunit-util": "^1",
         "phpunit/phpunit": "^6 | ^7 | ^8",
-        "amphp/php-cs-fixer-config": "dev-master"
+        "amphp/php-cs-fixer-config": "dev-master",
+        "amphp/file": "^1.0"
     },
     "autoload": {
         "psr-4": {
@@ -35,9 +38,12 @@
             "Amp\\Cache\\Test\\": "test"
         }
     },
+    "conflict": {
+        "amphp/file": "<0.2 || >=2"
+    },
     "config": {
         "platform": {
-            "php": "7.0"
+            "php": "7.1"
         }
     }
 }
