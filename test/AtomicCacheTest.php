@@ -5,6 +5,7 @@ namespace Amp\Cache\Test;
 use Amp\Cache\ArrayCache;
 use Amp\Cache\AtomicCache;
 use Amp\Cache\Cache;
+use Amp\Cache\CacheException;
 use Amp\Delayed;
 use Amp\Promise;
 use Amp\Sync\LocalKeyedMutex;
@@ -130,7 +131,7 @@ class AtomicCacheTest extends CacheTest
 
         $callback = function (string $key, string $value): Promise {
             $this->assertSame('key', $key);
-            return new Delayed(500, \intval($value) + 1);
+            return new Delayed(500, (string) (\intval($value) + 1));
         };
 
         $promise1 = $atomicCache->swap('key', $callback);
@@ -139,5 +140,41 @@ class AtomicCacheTest extends CacheTest
 
         $this->assertSame('1', yield $promise1);
         $this->assertSame('2', yield $promise2);
+    }
+
+    /**
+     * @dataProvider provideInvalidValues
+     */
+    public function testLoadCallbackReturningNonString($invalidValue): Promise
+    {
+        $this->expectException(CacheException::class);
+        $this->expectExceptionMessage('must be a string');
+
+        return $this->createCache()->load('key', function () use ($invalidValue) {
+            return $invalidValue;
+        });
+    }
+
+    /**
+     * @dataProvider provideInvalidValues
+     */
+    public function testSwapLoadCallbackReturningNonString($invalidValue): Promise
+    {
+        $this->expectException(CacheException::class);
+        $this->expectExceptionMessage('must be a string');
+
+        return $this->createCache()->swap('key', function () use ($invalidValue) {
+            return $invalidValue;
+        });
+    }
+
+    public function provideInvalidValues(): array
+    {
+        return [
+            [new \stdClass],
+            [1],
+            [true],
+            [3.14],
+        ];
     }
 }
