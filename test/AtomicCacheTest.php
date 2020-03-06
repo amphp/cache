@@ -128,16 +128,16 @@ class AtomicCacheTest extends CacheTest
 
         yield $atomicCache->set('key', 0);
 
-        $callback = function (string $key, int $value): Promise {
+        $callback = function (string $key, string $value): Promise {
             $this->assertSame('key', $key);
-            return new Delayed(500, $value + 1);
+            return new Delayed(500, \intval($value) + 1);
         };
 
         $promise1 = $atomicCache->swap('key', $callback);
 
         $promise2 = $atomicCache->swap('key', $callback);
 
-        $this->assertSame(1, yield $promise1);
-        $this->assertSame(2, yield $promise2);
+        $this->assertSame('1', yield $promise1);
+        $this->assertSame('2', yield $promise2);
     }
 }

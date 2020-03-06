@@ -103,7 +103,7 @@ final class AtomicCache implements Cache
         }
     }
 
-    private function create(callable $create, string $key, $value, ?int $ttl = null): \Generator
+    private function create(callable $create, string $key, ?string $value, ?int $ttl = null): \Generator
     {
         try {
             $value = yield call($create, $key, $value);
@@ -118,6 +118,8 @@ final class AtomicCache implements Cache
         if ($value === null) {
             throw new CacheException(\sprintf('The value to be cached for key "%s" must not be NULL', $key));
         }
+
+        $value = (string) $value;
 
         yield $this->cache->set($key, $value, $ttl);
 
