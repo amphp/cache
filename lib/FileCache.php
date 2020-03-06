@@ -80,6 +80,7 @@ final class FileCache implements Cache
         }
     }
 
+    /** @inheritdoc */
     public function get(string $key): Promise
     {
         return call(function () use ($key) {
@@ -107,6 +108,7 @@ final class FileCache implements Cache
         });
     }
 
+    /** @inheritdoc */
     public function set(string $key, string $value, int $ttl = null): Promise
     {
         if ($ttl < 0) {
@@ -135,6 +137,7 @@ final class FileCache implements Cache
         });
     }
 
+    /** @inheritdoc */
     public function delete(string $key): Promise
     {
         return call(function () use ($key) {

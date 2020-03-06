@@ -13,8 +13,8 @@ interface Cache
      *
      * @param $key string Cache key.
      *
-     * @return Promise Resolves to the cached value nor `null` if it doesn't exist or fails with a CacheException on
-     * failure.
+     * @return Promise<string|null> Resolves to the cached value nor `null` if it doesn't exist or fails with a
+     * CacheException on failure.
      */
     public function get(string $key): Promise;
 
@@ -29,7 +29,7 @@ interface Cache
      * @param $ttl int Timeout in seconds. The default `null` $ttl value indicates no timeout. Values less than 0 MUST
      * throw an \Error.
      *
-     * @return Promise Resolves either successfully or fails with a CacheException on failure.
+     * @return Promise<void> Resolves either successfully or fails with a CacheException on failure.
      */
     public function set(string $key, string $value, int $ttl = null): Promise;
 
@@ -44,7 +44,7 @@ interface Cache
      *
      * @param $key string Cache key.
      *
-     * @return Promise Resolves to `true` / `false` / `null` to indicate whether the key existed or fails with a
+     * @return Promise<bool> Resolves to `true` / `false` to indicate whether the key existed or fails with a
      * CacheException on failure.
      */
     public function delete(string $key): Promise;
