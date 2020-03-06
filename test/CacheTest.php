@@ -3,85 +3,54 @@
 namespace Amp\Cache\Test;
 
 use Amp\Cache\Cache;
-use Amp\Loop;
-use PHPUnit\Framework\TestCase;
+use Amp\Delayed;
+use Amp\PHPUnit\AsyncTestCase;
 
-abstract class CacheTest extends TestCase
+abstract class CacheTest extends AsyncTestCase
 {
     abstract protected function createCache(): Cache;
 
-    public function testGet()
+    public function testGet(): \Generator
     {
-        Loop::run(function () {
-            $cache = $this->createCache();
+        $cache = $this->createCache();
 
-            $result = yield $cache->get("mykey");
-            $this->assertNull($result);
+        $result = yield $cache->get("mykey");
+        $this->assertNull($result);
 
-            yield $cache->set("mykey", "myvalue", 10);
+        yield $cache->set("mykey", "myvalue", 10);
 
-            $result = yield $cache->get("mykey");
-            $this->assertSame("myvalue", $result);
-        });
+        $result = yield $cache->get("mykey");
+        $this->assertSame("myvalue", $result);
     }
 
-    public function testEntryIsntReturnedAfterTTLHasPassed()
+    public function testEntryIsNotReturnedAfterTTLHasPassed(): \Generator
     {
-        Loop::run(function () {
-            $cache = $this->createCache();
+        $cache = $this->createCache();
 
-            yield $cache->set("foo", "bar", 0);
-            \sleep(1);
+        yield $cache->set("foo", "bar", 0);
+        yield new Delayed(1000);
 
-            $this->assertNull(yield $cache->get("foo"));
-        });
+        $this->assertNull(yield $cache->get("foo"));
     }
 
-    public function testEntryIsReturnedWhenOverriddenWithNoTimeout()
+    public function testEntryIsReturnedWhenOverriddenWithNoTimeout(): \Generator
     {
-        Loop::run(function () {
-            $cache = $this->createCache();
+        $cache = $this->createCache();
 
-            yield $cache->set("foo", "bar", 0);
-            yield $cache->set("foo", "bar");
-            \sleep(1);
+        yield $cache->set("foo", "bar", 0);
+        yield $cache->set("foo", "bar");
+        yield new Delayed(1000);
 
-            $this->assertNotNull(yield $cache->get("foo"));
-        });
+        $this->assertNotNull(yield $cache->get("foo"));
     }
 
-    public function testEntryIsntReturnedAfterDelete()
+    public function testEntryIsNotReturnedAfterDelete(): \Generator
     {
-        Loop::run(function () {
-            $cache = $this->createCache();
+        $cache = $this->createCache();
 
-            yield $cache->set("foo", "bar");
-            yield $cache->delete("foo");
+        yield $cache->set("foo", "bar");
+        yield $cache->delete("foo");
 
-            $this->assertNull(yield $cache->get("foo"));
-        });
-    }
-
-    /**
-     * @dataProvider provideBadTTLs
-     */
-    public function testSetFailsOnInvalidTTL($badTTL)
-    {
-        Loop::run(function () use ($badTTL) {
-            $cache = $this->createCache();
-
-            $this->expectException(\Error::class);
-
-            $cache->set("mykey", "myvalue", $badTTL);
-        });
-    }
-
-    public function provideBadTTLs()
-    {
-        return [
-            [-1],
-            [new \StdClass],
-            [[]],
-        ];
+        $this->assertNull(yield $cache->get("foo"));
     }
 }

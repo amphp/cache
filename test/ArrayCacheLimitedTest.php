@@ -4,7 +4,6 @@ namespace Amp\Cache\Test;
 
 use Amp\Cache\ArrayCache;
 use Amp\Cache\Cache;
-use Amp\Loop;
 
 class ArrayCacheLimitedTest extends CacheTest
 {
@@ -13,16 +12,14 @@ class ArrayCacheLimitedTest extends CacheTest
         return new ArrayCache(5000, 5);
     }
 
-    public function testEntryIsntReturnedAfterCacheLimitReached()
+    public function testEntryIsNotReturnedAfterCacheLimitReached(): \Generator
     {
-        Loop::run(function () {
-            $cache = $this->createCache();
+        $cache = $this->createCache();
 
-            for ($i = 1; $i <= 6; $i++) {
-                yield $cache->set("foo_$i", $i, 0);
-            }
+        for ($i = 1; $i <= 6; $i++) {
+            yield $cache->set("foo_$i", $i, 0);
+        }
 
-            $this->assertNull(yield $cache->get("foo_1"));
-        });
+        $this->assertNull(yield $cache->get("foo_1"));
     }
 }

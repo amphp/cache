@@ -23,10 +23,10 @@
         "amphp/sync": "^1.2"
     },
     "require-dev": {
-        "amphp/phpunit-util": "^1",
-        "phpunit/phpunit": "^6 | ^7 | ^8",
+        "amphp/phpunit-util": "^1.1",
+        "phpunit/phpunit": "^6 | ^7 | ^8 | ^9",
         "amphp/php-cs-fixer-config": "dev-master",
-        "amphp/file": "^1.0"
+        "amphp/file": "^1"
     },
     "autoload": {
         "psr-4": {

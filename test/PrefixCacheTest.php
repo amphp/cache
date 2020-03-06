@@ -14,7 +14,7 @@ class PrefixCacheTest extends CacheTest
         return new PrefixCache(new ArrayCache, "prefix.");
     }
 
-    public function testPrefix()
+    public function testPrefix(): void
     {
         $this->assertSame("prefix.", $this->createCache()->getKeyPrefix());
     }

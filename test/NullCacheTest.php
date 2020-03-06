@@ -3,18 +3,15 @@
 namespace Amp\Cache\Test;
 
 use Amp\Cache\NullCache;
-use Amp\Loop;
-use Amp\PHPUnit\TestCase;
+use Amp\PHPUnit\AsyncTestCase;
 
-class NullCacheTest extends TestCase
+class NullCacheTest extends AsyncTestCase
 {
-    public function test()
+    public function test(): \Generator
     {
-        Loop::run(function () {
-            $cache = new NullCache;
-            $this->assertNull(yield $cache->set("foo", "bar"));
-            $this->assertNull(yield $cache->get("foo"));
-            $this->assertFalse(yield $cache->delete("foo"));
-        });
+        $cache = new NullCache;
+        $this->assertNull(yield $cache->set("foo", "bar"));
+        $this->assertNull(yield $cache->get("foo"));
+        $this->assertFalse(yield $cache->delete("foo"));
     }
 }
