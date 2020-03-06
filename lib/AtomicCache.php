@@ -30,7 +30,7 @@ final class AtomicCache implements Cache
      * @param callable(string $key) $create
      * @param int|null $ttl
      *
-     * @return Promise<mixed>
+     * @return Promise<string>
      *
      * @throws CacheException If the $create callback throws an exception while generating the value.
      */
@@ -70,7 +70,7 @@ final class AtomicCache implements Cache
      * @param callable(string $key, mixed $value) $create
      * @param int|null $ttl
      *
-     * @return Promise<mixed>
+     * @return Promise<string>
      *
      * @throws CacheException If the $create callback throws an exception while generating the value.
      */
