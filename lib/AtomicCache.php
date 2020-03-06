@@ -23,8 +23,8 @@ final class AtomicCache implements Cache
 
     /**
      * Attempts to get the value for the given key. If the value is not found, the key is locked, the $create callback
-     * is invoked with the key as the first parameter. The value returned from the callback is stored in the cache and
-     * the promise returned from this method is resolved with the value.
+     * is invoked with the key as the first parameter and null as the second parameter. The value returned from the
+     * callback is stored in the cache and the promise returned from this method is resolved with the value.
      *
      * @param string   $key
      * @param callable(string $key) $create
@@ -34,7 +34,7 @@ final class AtomicCache implements Cache
      *
      * @throws CacheException If the $create callback throws an exception while generating the value.
      */
-    public function getOrSet(string $key, callable $create, ?int $ttl = null): Promise
+    public function load(string $key, callable $create, ?int $ttl = null): Promise
     {
         return call(function () use ($key, $create, $ttl): \Generator {
             $value = yield $this->cache->get($key);
@@ -74,7 +74,7 @@ final class AtomicCache implements Cache
      *
      * @throws CacheException If the $create callback throws an exception while generating the value.
      */
-    public function getThenSet(string $key, callable $create, ?int $ttl = null): Promise
+    public function swap(string $key, callable $create, ?int $ttl = null): Promise
     {
         return call(function () use ($key, $create, $ttl): \Generator {
             $lock = yield from $this->lock($key);
@@ -106,11 +106,7 @@ final class AtomicCache implements Cache
     private function create(callable $create, string $key, $value, ?int $ttl = null): \Generator
     {
         try {
-            if ($value === null) {
-                $value = yield call($create, $key);
-            } else {
-                $value = yield call($create, $key, $value);
-            }
+            $value = yield call($create, $key, $value);
         } catch (\Throwable $exception) {
             throw new CacheException(
                 \sprintf('Exception thrown while creating the value for key "%s"', $key),

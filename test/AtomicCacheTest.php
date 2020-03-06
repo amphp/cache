@@ -16,7 +16,7 @@ class AtomicCacheTest extends CacheTest
         return new AtomicCache(new ArrayCache, new LocalKeyedMutex);
     }
 
-    public function testGetOrSetNoValue(): \Generator
+    public function testLoadNoValue(): \Generator
     {
         $this->setMinimumRuntime(100);
 
@@ -28,13 +28,13 @@ class AtomicCacheTest extends CacheTest
             return new Delayed(100, 'value');
         };
 
-        $result = yield $atomicCache->getOrSet('key', $callback);
+        $result = yield $atomicCache->load('key', $callback);
 
         $this->assertSame('value', $result);
         $this->assertSame('value', yield $internalCache->get('key'));
     }
 
-    public function testGetOrSetExistingValue(): \Generator
+    public function testLoadExistingValue(): \Generator
     {
         $this->setTimeout(100);
 
@@ -48,13 +48,13 @@ class AtomicCacheTest extends CacheTest
             return new Delayed(100, 'value');
         };
 
-        $result = yield $atomicCache->getOrSet('key', $callback);
+        $result = yield $atomicCache->load('key', $callback);
 
         $this->assertSame('value', $result);
         $this->assertSame('value', yield $internalCache->get('key'));
     }
 
-    public function testGetThenSet(): \Generator
+    public function testSwap(): \Generator
     {
         $this->setMinimumRuntime(100);
 
@@ -68,13 +68,13 @@ class AtomicCacheTest extends CacheTest
             return new Delayed(100, 'updated');
         };
 
-        $result = yield $atomicCache->getThenSet('key', $callback);
+        $result = yield $atomicCache->swap('key', $callback);
 
         $this->assertSame('updated', $result);
         $this->assertSame('updated', yield $internalCache->get('key'));
     }
 
-    public function testSimultaneousGetOrSet(): \Generator
+    public function testSimultaneousLoad(): \Generator
     {
         $this->setMinimumRuntime(500);
 
@@ -86,9 +86,9 @@ class AtomicCacheTest extends CacheTest
             return new Delayed(500, 'value');
         };
 
-        $setPromise = $atomicCache->getOrSet('key', $callback);
+        $setPromise = $atomicCache->load('key', $callback);
 
-        $getPromise = $atomicCache->getOrSet('key', $this->createCallback(0));
+        $getPromise = $atomicCache->load('key', $this->createCallback(0));
 
         $this->assertSame('value', yield $setPromise);
         $this->assertSame('value', yield $getPromise);
@@ -96,7 +96,7 @@ class AtomicCacheTest extends CacheTest
     }
 
 
-    public function testGetOrSetDuringGetThenSet(): \Generator
+    public function testLoadDuringSwap(): \Generator
     {
         $this->setMinimumRuntime(500);
         $this->setTimeout(600);
@@ -109,16 +109,16 @@ class AtomicCacheTest extends CacheTest
             return new Delayed(500, 'value');
         };
 
-        $setPromise = $atomicCache->getThenSet('key', $callback);
+        $setPromise = $atomicCache->swap('key', $callback);
 
-        $getPromise = $atomicCache->getOrSet('key', $this->createCallback(0));
+        $getPromise = $atomicCache->load('key', $this->createCallback(0));
 
         $this->assertSame('value', yield $setPromise);
         $this->assertSame('value', yield $getPromise);
         $this->assertSame('value', yield $internalCache->get('key'));
     }
 
-    public function testSimultaneousGetThenSet(): \Generator
+    public function testSimultaneousSwap(): \Generator
     {
         $this->setMinimumRuntime(1000);
         $this->setTimeout(1100);
@@ -133,9 +133,9 @@ class AtomicCacheTest extends CacheTest
             return new Delayed(500, $value + 1);
         };
 
-        $promise1 = $atomicCache->getThenSet('key', $callback);
+        $promise1 = $atomicCache->swap('key', $callback);
 
-        $promise2 = $atomicCache->getThenSet('key', $callback);
+        $promise2 = $atomicCache->swap('key', $callback);
 
         $this->assertSame(1, yield $promise1);
         $this->assertSame(2, yield $promise2);
