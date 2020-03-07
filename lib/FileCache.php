@@ -130,7 +130,7 @@ final class FileCache implements Cache
             $encodedTtl = \pack('N', $ttl);
 
             try {
-                return yield File\put($this->directory . '/' . $filename, $encodedTtl . $value);
+                yield File\put($this->directory . '/' . $filename, $encodedTtl . $value);
             } finally {
                 $lock->release();
             }
