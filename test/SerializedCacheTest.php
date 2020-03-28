@@ -3,12 +3,12 @@
 namespace Amp\Cache\Test;
 
 use Amp\Cache\Cache;
-use Amp\Cache\DelegatingSerializedCache;
+use Amp\Cache\SerializedCache;
 use Amp\PHPUnit\AsyncTestCase;
 use Amp\Serialization\NativeSerializer;
 use Amp\Success;
 
-class DelegatingSerializedCacheTest extends AsyncTestCase
+class SerializedCacheTest extends AsyncTestCase
 {
     public function provideSerializableValues(): iterable
     {
@@ -41,7 +41,7 @@ class DelegatingSerializedCacheTest extends AsyncTestCase
             ->with('key')
             ->willReturn(new Success($serializedValue));
 
-        $cache = new DelegatingSerializedCache($mock, $serializer);
+        $cache = new SerializedCache($mock, $serializer);
 
         yield $cache->set('key', $value);
 
