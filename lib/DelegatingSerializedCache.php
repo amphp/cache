@@ -4,8 +4,8 @@ namespace Amp\Cache;
 
 use Amp\Failure;
 use Amp\Promise;
-use Amp\Sync\SerializationException;
-use Amp\Sync\Serializer;
+use Amp\Serialization\SerializationException;
+use Amp\Serialization\Serializer;
 use function Amp\call;
 
 final class DelegatingSerializedCache implements SerializedCache

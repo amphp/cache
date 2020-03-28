@@ -5,8 +5,8 @@ namespace Amp\Cache\Test;
 use Amp\Cache\Cache;
 use Amp\Cache\DelegatingSerializedCache;
 use Amp\PHPUnit\AsyncTestCase;
+use Amp\Serialization\NativeSerializer;
 use Amp\Success;
-use Amp\Sync\NativeSerializer;
 
 class DelegatingSerializedCacheTest extends AsyncTestCase
 {

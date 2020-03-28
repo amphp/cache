@@ -4,7 +4,7 @@ namespace Amp\Cache;
 
 use Amp\Promise;
 
-interface SerializedCache extends Cache
+interface SerializedCache
 {
     /**
      * The promise is resolved with the unserialized cached value.
@@ -27,4 +27,20 @@ interface SerializedCache extends Cache
      * @return Promise<void> Resolves either successfully or fails with a CacheException on failure.
      */
     public function set(string $key, $value, int $ttl = null): Promise;
+
+    /**
+     * Deletes a value associated with the given key if it exists.
+     *
+     * Implementations SHOULD return boolean `true` or `false` to indicate whether the specified key existed at the time
+     * the delete operation was requested. If such information is not available, the implementation MUST resolve the
+     * promise with `null`.
+     *
+     * Implementations MUST transparently succeed operations for non-existent keys.
+     *
+     * @param $key string Cache key.
+     *
+     * @return Promise<bool> Resolves to `true` / `false` to indicate whether the key existed or fails with a
+     * CacheException on failure.
+     */
+    public function delete(string $key): Promise;
 }
