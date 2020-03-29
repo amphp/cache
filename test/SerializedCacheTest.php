@@ -3,6 +3,7 @@
 namespace Amp\Cache\Test;
 
 use Amp\Cache\Cache;
+use Amp\Cache\CacheException;
 use Amp\Cache\SerializedCache;
 use Amp\PHPUnit\AsyncTestCase;
 use Amp\Promise;
@@ -85,7 +86,7 @@ class SerializedCacheTest extends AsyncTestCase
 
     public function testStoringNull(): Promise
     {
-        $this->expectException(SerializationException::class);
+        $this->expectException(CacheException::class);
 
         $cache = new SerializedCache($this->createMock(Cache::class), new NativeSerializer);
 

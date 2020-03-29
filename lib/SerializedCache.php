@@ -56,7 +56,7 @@ final class SerializedCache
     public function set(string $key, $value, int $ttl = null): Promise
     {
         if ($value === null) {
-            return new Failure(new SerializationException('Cannot store NULL in serialized cache'));
+            return new Failure(new CacheException('Cannot store NULL in serialized cache'));
         }
 
         try {
