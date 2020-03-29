@@ -7,7 +7,7 @@ use Amp\Sync\KeyedMutex;
 use Amp\Sync\Lock;
 use function Amp\call;
 
-final class AtomicCache implements Cache
+final class AtomicCache
 {
     /** @var Cache */
     private $cache;
@@ -27,7 +27,7 @@ final class AtomicCache implements Cache
      * callback is stored in the cache and the promise returned from this method is resolved with the value.
      *
      * @param string   $key
-     * @param callable(string $key) $create
+     * @param callable(string $key, null $value): string $create
      * @param int|null $ttl
      *
      * @return Promise<string>
@@ -67,23 +67,23 @@ final class AtomicCache implements Cache
      * stored in cache and the promise returned from this method is resolved with the value.
      *
      * @param string   $key
-     * @param callable(string $key, mixed $value) $create
+     * @param callable(string $key, string $value): string $modify
      * @param int|null $ttl
      *
      * @return Promise<string>
      *
      * @throws CacheException If the $create callback throws an exception while generating the value.
      */
-    public function swap(string $key, callable $create, ?int $ttl = null): Promise
+    public function swap(string $key, callable $modify, ?int $ttl = null): Promise
     {
-        return call(function () use ($key, $create, $ttl): \Generator {
+        return call(function () use ($key, $modify, $ttl): \Generator {
             $lock = yield from $this->lock($key);
             \assert($lock instanceof Lock);
 
             $value = yield $this->cache->get($key);
 
             try {
-                return yield from $this->create($create, $key, $value, $ttl);
+                return yield from $this->create($modify, $key, $value, $ttl);
             } finally {
                 $lock->release();
             }
@@ -129,7 +129,11 @@ final class AtomicCache implements Cache
     }
 
     /**
-     * @inheritDoc
+     * @see Cache::get()
+     *
+     * @param $key string Cache key.
+     *
+     * @return Promise<string|null>
      */
     public function get(string $key): Promise
     {
@@ -139,7 +143,14 @@ final class AtomicCache implements Cache
     /**
      * The lock is obtained for the key before setting the value.
      *
-     * @inheritDoc
+     * @see Cache::set()
+     *
+     * @param $key string Cache key.
+     * @param $value string Value to cache.
+     * @param $ttl int Timeout in seconds. The default `null` $ttl value indicates no timeout. Values less than 0 MUST
+     * throw an \Error.
+     *
+     * @return Promise<void> Resolves either successfully or fails with a CacheException on failure.
      */
     public function set(string $key, string $value, ?int $ttl = null): Promise
     {
@@ -158,7 +169,11 @@ final class AtomicCache implements Cache
     /**
      * The lock is obtained for the key before deleting the key.
      *
-     * @inheritDoc
+     * @see Cache::delete()
+     *
+     * @param string $key
+     *
+     * @return Promise<bool>
      */
     public function delete(string $key): Promise
     {

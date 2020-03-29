@@ -4,19 +4,14 @@ namespace Amp\Cache\Test;
 
 use Amp\Cache\ArrayCache;
 use Amp\Cache\AtomicCache;
-use Amp\Cache\Cache;
 use Amp\Cache\CacheException;
 use Amp\Delayed;
+use Amp\PHPUnit\AsyncTestCase;
 use Amp\Promise;
 use Amp\Sync\LocalKeyedMutex;
 
-class AtomicCacheTest extends CacheTest
+class AtomicCacheTest extends AsyncTestCase
 {
-    protected function createCache(): Cache
-    {
-        return new AtomicCache(new ArrayCache, new LocalKeyedMutex);
-    }
-
     public function testLoadNoValue(): \Generator
     {
         $this->setMinimumRuntime(100);
@@ -150,7 +145,9 @@ class AtomicCacheTest extends CacheTest
         $this->expectException(CacheException::class);
         $this->expectExceptionMessage('must be a string');
 
-        return $this->createCache()->load('key', function () use ($invalidValue) {
+        $cache = new AtomicCache(new ArrayCache, new LocalKeyedMutex);
+
+        return $cache->load('key', function () use ($invalidValue) {
             return $invalidValue;
         });
     }
@@ -163,7 +160,9 @@ class AtomicCacheTest extends CacheTest
         $this->expectException(CacheException::class);
         $this->expectExceptionMessage('must be a string');
 
-        return $this->createCache()->swap('key', function () use ($invalidValue) {
+        $cache = new AtomicCache(new ArrayCache, new LocalKeyedMutex);
+
+        return $cache->swap('key', function () use ($invalidValue) {
             return $invalidValue;
         });
     }
