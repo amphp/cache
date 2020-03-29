@@ -8,6 +8,7 @@ use Amp\Cache\CacheException;
 use Amp\Delayed;
 use Amp\PHPUnit\AsyncTestCase;
 use Amp\Promise;
+use Amp\Serialization\NativeSerializer;
 use Amp\Sync\LocalKeyedMutex;
 
 class AtomicCacheTest extends AsyncTestCase
@@ -91,7 +92,6 @@ class AtomicCacheTest extends AsyncTestCase
         $this->assertSame('value', yield $internalCache->get('key'));
     }
 
-
     public function testLoadDuringSwap(): \Generator
     {
         $this->setMinimumRuntime(500);
@@ -122,7 +122,7 @@ class AtomicCacheTest extends AsyncTestCase
         $internalCache = new ArrayCache;
         $atomicCache = new AtomicCache($internalCache, new LocalKeyedMutex);
 
-        yield $atomicCache->set('key', 0);
+        yield $atomicCache->set('key', '0');
 
         $callback = function (string $key, string $value): Promise {
             $this->assertSame('key', $key);
@@ -137,37 +137,27 @@ class AtomicCacheTest extends AsyncTestCase
         $this->assertSame('2', yield $promise2);
     }
 
-    /**
-     * @dataProvider provideInvalidValues
-     */
-    public function testLoadCallbackReturningNonString($invalidValue): Promise
+    public function testLoadCallbackReturningNull(): Promise
     {
         $this->expectException(CacheException::class);
-        $this->expectExceptionMessage('must be a string');
+        $this->expectExceptionMessage('Cannot store NULL');
 
         $cache = new AtomicCache(new ArrayCache, new LocalKeyedMutex);
-
-        return $cache->load('key', function () use ($invalidValue) {
-            return $invalidValue;
+        return $cache->load('key', function () {
+            return null;
         });
     }
 
-    /**
-     * @dataProvider provideInvalidValues
-     */
-    public function testSwapLoadCallbackReturningNonString($invalidValue): Promise
+    public function testSetNull(): Promise
     {
         $this->expectException(CacheException::class);
-        $this->expectExceptionMessage('must be a string');
+        $this->expectExceptionMessage('Cannot store NULL');
 
         $cache = new AtomicCache(new ArrayCache, new LocalKeyedMutex);
-
-        return $cache->swap('key', function () use ($invalidValue) {
-            return $invalidValue;
-        });
+        return $cache->set('key', null);
     }
 
-    public function provideInvalidValues(): array
+    public function provideSerializableValues(): array
     {
         return [
             [new \stdClass],
@@ -175,5 +165,35 @@ class AtomicCacheTest extends AsyncTestCase
             [true],
             [3.14],
         ];
+    }
+
+    /**
+     * @dataProvider provideSerializableValues
+     */
+    public function testLoadCallbackReturningSerializableValue($value): \Generator
+    {
+        $cache = new AtomicCache(new ArrayCache, new LocalKeyedMutex, new NativeSerializer);
+
+        $result = yield $cache->load('key', function () use ($value) {
+            return $value;
+        });
+
+        $this->assertEquals($value, $result);
+        $this->assertEquals($value, yield $cache->get('key'));
+    }
+
+    /**
+     * @dataProvider provideSerializableValues
+     */
+    public function testSwapLoadCallbackReturningNonString($value): \Generator
+    {
+        $cache = new AtomicCache(new ArrayCache, new LocalKeyedMutex, new NativeSerializer);
+
+        $result = yield $cache->swap('key', function () use ($value) {
+            return $value;
+        });
+
+        $this->assertEquals($value, $result);
+        $this->assertEquals($value, yield $cache->get('key'));
     }
 }

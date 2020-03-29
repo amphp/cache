@@ -2,7 +2,11 @@
 
 namespace Amp\Cache;
 
+use Amp\Failure;
 use Amp\Promise;
+use Amp\Serialization\PassthroughSerializer;
+use Amp\Serialization\SerializationException;
+use Amp\Serialization\Serializer;
 use Amp\Sync\KeyedMutex;
 use Amp\Sync\Lock;
 use function Amp\call;
@@ -15,10 +19,20 @@ final class AtomicCache
     /** @var KeyedMutex */
     private $mutex;
 
-    public function __construct(Cache $cache, KeyedMutex $mutex)
+    /** @var Serializer */
+    private $serializer;
+
+    /**
+     * @param Cache           $cache
+     * @param KeyedMutex      $mutex
+     * @param Serializer|null $serializer Uses {@see PassthroughSerializer} if none is provided, allowing only strings
+     *                                    to be stored in the cache.
+     */
+    public function __construct(Cache $cache, KeyedMutex $mutex, ?Serializer $serializer = null)
     {
         $this->cache = $cache;
         $this->mutex = $mutex;
+        $this->serializer = $serializer ?? new PassthroughSerializer;
     }
 
     /**
@@ -30,14 +44,15 @@ final class AtomicCache
      * @param callable(string $key, null $value): string $create
      * @param int|null $ttl
      *
-     * @return Promise<string>
+     * @return Promise<mixed>
      *
      * @throws CacheException If the $create callback throws an exception while generating the value.
+     * @throws SerializationException If serializing the value returned from the callback fails.
      */
     public function load(string $key, callable $create, ?int $ttl = null): Promise
     {
         return call(function () use ($key, $create, $ttl): \Generator {
-            $value = yield $this->cache->get($key);
+            $value = yield $this->get($key);
 
             if ($value !== null) {
                 return $value;
@@ -48,7 +63,7 @@ final class AtomicCache
 
             try {
                 // Attempt to get the value again, since it may have been set while obtaining the lock.
-                $value = yield $this->cache->get($key);
+                $value = yield $this->get($key);
 
                 if ($value !== null) {
                     return $value;
@@ -70,9 +85,10 @@ final class AtomicCache
      * @param callable(string $key, string $value): string $modify
      * @param int|null $ttl
      *
-     * @return Promise<string>
+     * @return Promise<mixed>
      *
      * @throws CacheException If the $create callback throws an exception while generating the value.
+     * @throws SerializationException If serializing the value returned from the callback fails.
      */
     public function swap(string $key, callable $modify, ?int $ttl = null): Promise
     {
@@ -80,7 +96,7 @@ final class AtomicCache
             $lock = yield from $this->lock($key);
             \assert($lock instanceof Lock);
 
-            $value = yield $this->cache->get($key);
+            $value = yield $this->get($key);
 
             try {
                 return yield from $this->create($modify, $key, $value, $ttl);
@@ -103,7 +119,7 @@ final class AtomicCache
         }
     }
 
-    private function create(callable $create, string $key, ?string $value, ?int $ttl): \Generator
+    private function create(callable $create, string $key, $value, ?int $ttl): \Generator
     {
         try {
             $value = yield call($create, $key, $value);
@@ -115,15 +131,11 @@ final class AtomicCache
             );
         }
 
-        if (!\is_string($value)) {
-            throw new CacheException(\sprintf(
-                'The value to be cached for key "%s" must be a string, %s returned',
-                $key,
-                \is_object($value) ? \get_class($value) : \gettype($value)
-            ));
+        if ($value === null) {
+            throw new CacheException('Cannot store NULL in cache');
         }
 
-        yield $this->cache->set($key, $value, $ttl);
+        yield $this->cache->set($key, $this->serializer->serialize($value), $ttl);
 
         return $value;
     }
@@ -133,11 +145,22 @@ final class AtomicCache
      *
      * @param $key string Cache key.
      *
-     * @return Promise<string|null>
+     * @return Promise<mixed|null>
+     *
+     * @throws CacheException
+     * @throws SerializationException
      */
     public function get(string $key): Promise
     {
-        return $this->cache->get($key);
+        return call(function () use ($key) {
+            $value = yield $this->cache->get($key);
+
+            if ($value === null) {
+                return $value;
+            }
+
+            return $this->serializer->unserialize($value);
+        });
     }
 
     /**
@@ -146,20 +169,27 @@ final class AtomicCache
      * @see Cache::set()
      *
      * @param $key string Cache key.
-     * @param $value string Value to cache.
+     * @param $value mixed Value to cache.
      * @param $ttl int Timeout in seconds. The default `null` $ttl value indicates no timeout. Values less than 0 MUST
      * throw an \Error.
      *
      * @return Promise<void> Resolves either successfully or fails with a CacheException on failure.
+     *
+     * @throws CacheException
+     * @throws SerializationException
      */
-    public function set(string $key, string $value, ?int $ttl = null): Promise
+    public function set(string $key, $value, ?int $ttl = null): Promise
     {
+        if ($value === null) {
+            return new Failure(new CacheException('Cannot store NULL in cache'));
+        }
+
         return call(function () use ($key, $value, $ttl): \Generator {
             $lock = yield from $this->lock($key);
             \assert($lock instanceof Lock);
 
             try {
-                yield $this->cache->set($key, $value, $ttl);
+                yield $this->cache->set($key, $this->serializer->serialize($value), $ttl);
             } finally {
                 $lock->release();
             }
