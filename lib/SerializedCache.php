@@ -28,7 +28,7 @@ final class SerializedCache
      * @param $key string Cache key.
      *
      * @return Promise<mixed|null> Resolves to the cached value nor `null` if it doesn't exist or fails with a
-     * CacheException on failure.
+     * CacheException or SerializationException on failure.
      */
     public function get(string $key): Promise
     {
@@ -50,10 +50,15 @@ final class SerializedCache
      * @param $ttl   int Timeout in seconds. The default `null` $ttl value indicates no timeout. Values less than 0 MUST
      *               throw an \Error.
      *
-     * @return Promise<void> Resolves either successfully or fails with a CacheException on failure.
+     * @return Promise<void> Resolves either successfully or fails with a CacheException or SerializationException
+     * on failure.
      */
     public function set(string $key, $value, int $ttl = null): Promise
     {
+        if ($value === null) {
+            return new Failure(new SerializationException('Cannot store NULL in serialized cache'));
+        }
+
         try {
             $value = $this->serializer->serialize($value);
         } catch (SerializationException $exception) {
