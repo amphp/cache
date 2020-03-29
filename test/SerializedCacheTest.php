@@ -5,7 +5,10 @@ namespace Amp\Cache\Test;
 use Amp\Cache\Cache;
 use Amp\Cache\SerializedCache;
 use Amp\PHPUnit\AsyncTestCase;
+use Amp\Promise;
 use Amp\Serialization\NativeSerializer;
+use Amp\Serialization\SerializationException;
+use Amp\Serialization\Serializer;
 use Amp\Success;
 
 class SerializedCacheTest extends AsyncTestCase
@@ -46,5 +49,46 @@ class SerializedCacheTest extends AsyncTestCase
         yield $cache->set('key', $value);
 
         $this->assertEquals($value, yield $cache->get('key'));
+    }
+
+    public function testSerializerThrowingOnGet(): \Generator
+    {
+        $this->expectException(SerializationException::class);
+
+        $serializer = $this->createMock(Serializer::class);
+        $serializer->method('unserialize')
+            ->willThrowException(new SerializationException);
+
+        $mock = $this->createMock(Cache::class);
+        $mock->expects($this->once())
+            ->method('get')
+            ->with('key')
+            ->willReturn(new Success('value'));
+
+        $cache = new SerializedCache($mock, $serializer);
+
+        $value = yield $cache->get('key');
+    }
+
+    public function testSerializerThrowingOnSet(): Promise
+    {
+        $this->expectException(SerializationException::class);
+
+        $serializer = $this->createMock(Serializer::class);
+        $serializer->method('serialize')
+            ->willThrowException(new SerializationException);
+
+        $cache = new SerializedCache($this->createMock(Cache::class), $serializer);
+
+        return $cache->set('key', 'value');
+    }
+
+    public function testStoringNull(): Promise
+    {
+        $this->expectException(SerializationException::class);
+
+        $cache = new SerializedCache($this->createMock(Cache::class), new NativeSerializer);
+
+        return $cache->set('key', null);
     }
 }
