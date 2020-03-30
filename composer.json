@@ -20,6 +20,7 @@
     "require": {
         "php": ">=7.1",
         "amphp/amp": "^2",
+        "amphp/serialization": "^1",
         "amphp/sync": "^1.2"
     },
     "require-dev": {
@@ -40,10 +41,5 @@
     },
     "conflict": {
         "amphp/file": "<0.2 || >=2"
-    },
-    "config": {
-        "platform": {
-            "php": "7.1"
-        }
     }
 }
