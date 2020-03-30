@@ -5,10 +5,12 @@ namespace Amp\Cache\Test;
 use Amp\Cache\ArrayCache;
 use Amp\Cache\AtomicCache;
 use Amp\Cache\CacheException;
+use Amp\Cache\SerializedCache;
 use Amp\Delayed;
 use Amp\PHPUnit\AsyncTestCase;
 use Amp\Promise;
 use Amp\Serialization\NativeSerializer;
+use Amp\Serialization\PassthroughSerializer;
 use Amp\Sync\LocalKeyedMutex;
 
 class AtomicCacheTest extends AsyncTestCase
@@ -17,7 +19,7 @@ class AtomicCacheTest extends AsyncTestCase
     {
         $this->setMinimumRuntime(100);
 
-        $internalCache = new ArrayCache;
+        $internalCache = new SerializedCache(new ArrayCache, new PassthroughSerializer);
         $atomicCache = new AtomicCache($internalCache, new LocalKeyedMutex);
 
         $callback = function (string $key): Promise {
@@ -35,7 +37,7 @@ class AtomicCacheTest extends AsyncTestCase
     {
         $this->setTimeout(100);
 
-        $internalCache = new ArrayCache;
+        $internalCache = new SerializedCache(new ArrayCache, new PassthroughSerializer);
         $atomicCache = new AtomicCache($internalCache, new LocalKeyedMutex);
 
         yield $internalCache->set('key', 'value');
@@ -55,7 +57,7 @@ class AtomicCacheTest extends AsyncTestCase
     {
         $this->setMinimumRuntime(100);
 
-        $internalCache = new ArrayCache;
+        $internalCache = new SerializedCache(new ArrayCache, new PassthroughSerializer);
         $atomicCache = new AtomicCache($internalCache, new LocalKeyedMutex);
 
         yield $internalCache->set('key', 'original');
@@ -75,7 +77,7 @@ class AtomicCacheTest extends AsyncTestCase
     {
         $this->setMinimumRuntime(500);
 
-        $internalCache = new ArrayCache;
+        $internalCache = new SerializedCache(new ArrayCache, new PassthroughSerializer);
         $atomicCache = new AtomicCache($internalCache, new LocalKeyedMutex);
 
         $callback = function (string $key): Promise {
@@ -97,7 +99,7 @@ class AtomicCacheTest extends AsyncTestCase
         $this->setMinimumRuntime(500);
         $this->setTimeout(600);
 
-        $internalCache = new ArrayCache;
+        $internalCache = new SerializedCache(new ArrayCache, new PassthroughSerializer);
         $atomicCache = new AtomicCache($internalCache, new LocalKeyedMutex);
 
         $callback = function (string $key): Promise {
@@ -119,22 +121,23 @@ class AtomicCacheTest extends AsyncTestCase
         $this->setMinimumRuntime(1000);
         $this->setTimeout(1100);
 
-        $internalCache = new ArrayCache;
+        $internalCache = new SerializedCache(new ArrayCache, new NativeSerializer);
         $atomicCache = new AtomicCache($internalCache, new LocalKeyedMutex);
 
-        yield $atomicCache->set('key', '0');
+        yield $atomicCache->set('key', 0);
 
-        $callback = function (string $key, string $value): Promise {
+        $callback = function (string $key, int $value): Promise {
             $this->assertSame('key', $key);
-            return new Delayed(500, (string) (\intval($value) + 1));
+            $this->assertIsInt($value);
+            return new Delayed(500, $value + 1);
         };
 
         $promise1 = $atomicCache->swap('key', $callback);
 
         $promise2 = $atomicCache->swap('key', $callback);
 
-        $this->assertSame('1', yield $promise1);
-        $this->assertSame('2', yield $promise2);
+        $this->assertSame(1, yield $promise1);
+        $this->assertSame(2, yield $promise2);
     }
 
     public function testLoadCallbackReturningNull(): Promise
@@ -142,7 +145,7 @@ class AtomicCacheTest extends AsyncTestCase
         $this->expectException(CacheException::class);
         $this->expectExceptionMessage('Cannot store NULL');
 
-        $cache = new AtomicCache(new ArrayCache, new LocalKeyedMutex);
+        $cache = new AtomicCache(new SerializedCache(new ArrayCache, new PassthroughSerializer), new LocalKeyedMutex);
         return $cache->load('key', function () {
             return null;
         });
@@ -153,7 +156,7 @@ class AtomicCacheTest extends AsyncTestCase
         $this->expectException(CacheException::class);
         $this->expectExceptionMessage('Cannot store NULL');
 
-        $cache = new AtomicCache(new ArrayCache, new LocalKeyedMutex);
+        $cache = new AtomicCache(new SerializedCache(new ArrayCache, new PassthroughSerializer), new LocalKeyedMutex);
         return $cache->set('key', null);
     }
 
@@ -172,7 +175,7 @@ class AtomicCacheTest extends AsyncTestCase
      */
     public function testLoadCallbackReturningSerializableValue($value): \Generator
     {
-        $cache = new AtomicCache(new ArrayCache, new LocalKeyedMutex, new NativeSerializer);
+        $cache = new AtomicCache(new SerializedCache(new ArrayCache, new NativeSerializer), new LocalKeyedMutex);
 
         $result = yield $cache->load('key', function () use ($value) {
             return $value;
@@ -187,7 +190,7 @@ class AtomicCacheTest extends AsyncTestCase
      */
     public function testSwapLoadCallbackReturningNonString($value): \Generator
     {
-        $cache = new AtomicCache(new ArrayCache, new LocalKeyedMutex, new NativeSerializer);
+        $cache = new AtomicCache(new SerializedCache(new ArrayCache, new NativeSerializer), new LocalKeyedMutex);
 
         $result = yield $cache->swap('key', function () use ($value) {
             return $value;
