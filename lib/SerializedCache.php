@@ -23,11 +23,11 @@ final class SerializedCache
     }
 
     /**
-     * The promise is resolved with the unserialized cached value.
+     * Fetch a value from the cache and unserialize it.
      *
      * @param $key string Cache key.
      *
-     * @return Promise<mixed|null> Resolves to the cached value nor `null` if it doesn't exist or fails with a
+     * @return Promise<mixed|null> Resolves to the cached value or `null` if it doesn't exist. Fails with a
      * CacheException or SerializationException on failure.
      */
     public function get(string $key): Promise
@@ -35,7 +35,7 @@ final class SerializedCache
         return call(function () use ($key) {
             $data = yield $this->cache->get($key);
             if ($data === null) {
-                return $data;
+                return null;
             }
 
             return $this->serializer->unserialize($data);
@@ -43,15 +43,14 @@ final class SerializedCache
     }
 
     /**
-     * Allows any serializable value to cached, not just strings.
+     * Serializes a value and stores its serialization to the cache.
      *
      * @param $key   string Cache key.
      * @param $value mixed Value to cache.
      * @param $ttl   int Timeout in seconds. The default `null` $ttl value indicates no timeout. Values less than 0 MUST
      *               throw an \Error.
      *
-     * @return Promise<void> Resolves either successfully or fails with a CacheException or SerializationException
-     * on failure.
+     * @return Promise<void> Resolves either successfully or fails with a CacheException or SerializationException.
      */
     public function set(string $key, $value, int $ttl = null): Promise
     {
