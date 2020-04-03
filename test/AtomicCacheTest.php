@@ -299,15 +299,13 @@ class AtomicCacheTest extends AsyncTestCase
 
     public function testDelete(): \Generator
     {
-        $this->setMinimumRuntime(100);
-
         $internalCache = new SerializedCache(new ArrayCache, new PassthroughSerializer);
         $atomicCache = new AtomicCache($internalCache, new LocalKeyedMutex);
 
         $setPromise = $atomicCache->setIfAbsent('key', 'value');
 
-        $computePromise = $atomicCache->computeIfPresent('key', function () {
-            return new Delayed(100, 'new-value');
+        $computePromise = $atomicCache->computeIfPresent('key', function (): string {
+            return 'new-value';
         });
 
         $deletePromise = $atomicCache->delete('key');
@@ -315,5 +313,29 @@ class AtomicCacheTest extends AsyncTestCase
         $this->assertSame('value', yield $setPromise);
         $this->assertSame('new-value', yield $computePromise);
         $this->assertTrue(yield $deletePromise);
+    }
+
+    public function testDeleteIf(): \Generator
+    {
+        $internalCache = new SerializedCache(new ArrayCache, new PassthroughSerializer);
+        $atomicCache = new AtomicCache($internalCache, new LocalKeyedMutex);
+
+        $this->assertFalse(yield $atomicCache->deleteIf('key', $this->createCallback(0)));
+
+        yield $atomicCache->set('key', 'value');
+
+        $this->assertFalse(yield $atomicCache->deleteIf('key', $this->createCallback(1, function (string $key, string $value): bool {
+            $this->assertSame('key', $key);
+            $this->assertSame('value', $value);
+            return false;
+        })));
+
+        $this->assertSame('value', yield $atomicCache->get('key'));
+
+        $this->assertTrue(yield $atomicCache->deleteIf('key', $this->createCallback(1, function (): bool {
+            return true;
+        })));
+
+        $this->assertNull(yield $atomicCache->get('key'));
     }
 }

@@ -46,9 +46,9 @@ final class AtomicCache
             $lock = yield from $this->lock($key);
             \assert($lock instanceof Lock);
 
-            $value = yield $this->cache->get($key);
-
             try {
+                $value = yield $this->cache->get($key);
+
                 return yield from $this->create($create, $key, $value, $ttl);
             } finally {
                 $lock->release();
@@ -186,13 +186,13 @@ final class AtomicCache
             $lock = yield from $this->lock($key);
             \assert($lock instanceof Lock);
 
-            $currentValue = yield $this->cache->get($key);
-
-            if ($currentValue !== null) {
-                return $currentValue;
-            }
-
             try {
+                $currentValue = yield $this->cache->get($key);
+
+                if ($currentValue !== null) {
+                    return $currentValue;
+                }
+
                 yield $this->cache->set($key, $value, $ttl);
             } finally {
                 $lock->release();
@@ -221,13 +221,13 @@ final class AtomicCache
             $lock = yield from $this->lock($key);
             \assert($lock instanceof Lock);
 
-            $currentValue = yield $this->cache->get($key);
-
-            if ($currentValue === null) {
-                return null;
-            }
-
             try {
+                $currentValue = yield $this->cache->get($key);
+
+                if ($currentValue === null) {
+                    return null;
+                }
+
                 yield $this->cache->set($key, $value, $ttl);
             } finally {
                 $lock->release();
@@ -309,6 +309,50 @@ final class AtomicCache
             \assert($lock instanceof Lock);
 
             try {
+                return yield $this->cache->delete($key);
+            } finally {
+                $lock->release();
+            }
+        });
+    }
+
+    /**
+     * Deletes the cached value for the given key if the $check callback function returns a truthy value. If the cache
+     * does not contain the given key, the callback is not invoked.
+     *
+     * @param string   $key
+     * @param callable(string $key, mixed $value): bool $check
+     *
+     * @return Promise<bool> Resolves with true if the key was present and subsequently deleted from the cache or
+     *                       false if the key was not deleted from the cache.
+     */
+    public function deleteIf(string $key, callable $check): Promise
+    {
+        return call(function () use ($key, $check): \Generator {
+            $lock = yield from $this->lock($key);
+            \assert($lock instanceof Lock);
+
+            try {
+                $value = yield $this->cache->get($key);
+
+                if ($value === null) {
+                    return false;
+                }
+
+                try {
+                    $result = yield call($check, $key, $value);
+                } catch (\Throwable $exception) {
+                    throw new CacheException(
+                        \sprintf('Exception thrown from delete callback for key "%s"', $key),
+                        0,
+                        $exception
+                    );
+                }
+
+                if (!$result) {
+                    return false;
+                }
+
                 return yield $this->cache->delete($key);
             } finally {
                 $lock->release();
