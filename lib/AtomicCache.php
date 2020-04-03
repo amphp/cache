@@ -27,7 +27,37 @@ final class AtomicCache
     }
 
     /**
-     * Attempts to get the value for the given key. If the value is not found, the key is locked, the $create callback
+     * Obtains the lock for the given key, then invokes the $create callback with the current cached value (which may
+     * be null if the key did not exist in the cache). The value returned from the callback is stored in the cache and
+     * the promise returned from this method is resolved with the value.
+     *
+     * @param string   $key
+     * @param callable(string $key, null $value): mixed $create
+     * @param int|null $ttl
+     *
+     * @return Promise<mixed>
+     *
+     * @throws CacheException If the $create callback throws an exception while generating the value.
+     * @throws SerializationException If serializing the value returned from the callback fails.
+     */
+    public function compute(string $key, callable $create, ?int $ttl = null): Promise
+    {
+        return call(function () use ($key, $create, $ttl): \Generator {
+            $lock = yield from $this->lock($key);
+            \assert($lock instanceof Lock);
+
+            $value = yield $this->cache->get($key);
+
+            try {
+                return yield from $this->create($create, $key, $value, $ttl);
+            } finally {
+                $lock->release();
+            }
+        });
+    }
+
+    /**
+     * Attempts to get the value for the given key. If the key is not found, the key is locked, the $create callback
      * is invoked with the key as the first parameter and null as the second parameter. The value returned from the
      * callback is stored in the cache and the promise returned from this method is resolved with the value.
      *
@@ -40,7 +70,7 @@ final class AtomicCache
      * @throws CacheException If the $create callback throws an exception while generating the value.
      * @throws SerializationException If serializing the value returned from the callback fails.
      */
-    public function load(string $key, callable $create, ?int $ttl = null): Promise
+    public function computeIfAbsent(string $key, callable $create, ?int $ttl = null): Promise
     {
         return call(function () use ($key, $create, $ttl): \Generator {
             $value = yield $this->cache->get($key);
@@ -68,12 +98,13 @@ final class AtomicCache
     }
 
     /**
-     * The key is locked, the current value in the cache is accessed, then the $create callback is invoked with the key
-     * as the first parameter and the current value as the second parameter. The value returned from the callback is
-     * stored in cache and the promise returned from this method is resolved with the value.
+     * Attempts to get the value for the given key. If the key exists, the key is locked, the $create callback
+     * is invoked with the key as the first parameter and the current key value as the second parameter. The value
+     * returned from the callback is stored in the cache and the promise returned from this method is resolved with
+     * the value.
      *
      * @param string   $key
-     * @param callable(string $key, mixed $value): mixed $modify
+     * @param callable(string $key, null $value): mixed $create
      * @param int|null $ttl
      *
      * @return Promise<mixed>
@@ -81,19 +112,131 @@ final class AtomicCache
      * @throws CacheException If the $create callback throws an exception while generating the value.
      * @throws SerializationException If serializing the value returned from the callback fails.
      */
-    public function swap(string $key, callable $modify, ?int $ttl = null): Promise
+    public function computeIfPresent(string $key, callable $create, ?int $ttl = null): Promise
     {
-        return call(function () use ($key, $modify, $ttl): \Generator {
+        return call(function () use ($key, $create, $ttl): \Generator {
+            $value = yield $this->cache->get($key);
+
+            if ($value === null) {
+                return null;
+            }
+
             $lock = yield from $this->lock($key);
             \assert($lock instanceof Lock);
 
-            $value = yield $this->cache->get($key);
-
             try {
-                return yield from $this->create($modify, $key, $value, $ttl);
+                // Attempt to get the value again, since it may have been set while obtaining the lock.
+                $value = yield $this->cache->get($key);
+
+                if ($value === null) {
+                    return null;
+                }
+
+                return yield from $this->create($create, $key, $value, $ttl);
             } finally {
                 $lock->release();
             }
+        });
+    }
+
+    /**
+     * The lock is obtained for the key before setting the value.
+     *
+     * @param $key   string Cache key.
+     * @param $value mixed Value to cache.
+     * @param $ttl   int Timeout in seconds. The default `null` $ttl value indicates no timeout. Values less than 0 MUST
+     *               throw an \Error.
+     *
+     * @return Promise<void> Resolves either successfully or fails with a CacheException on failure.
+     *
+     * @throws CacheException
+     * @throws SerializationException
+     *
+     * @see SerializedCache::set()
+     */
+    public function set(string $key, $value, ?int $ttl = null): Promise
+    {
+        return call(function () use ($key, $value, $ttl): \Generator {
+            $lock = yield from $this->lock($key);
+            \assert($lock instanceof Lock);
+
+            try {
+                yield $this->cache->set($key, $value, $ttl);
+            } finally {
+                $lock->release();
+            }
+        });
+    }
+
+    /**
+     * The lock is obtained for the key and the value is set only if the key does not exist.
+     *
+     * @param $key   string Cache key.
+     * @param $value mixed Value to cache.
+     * @param $ttl   int Timeout in seconds. The default `null` $ttl value indicates no timeout. Values less than 0 MUST
+     *               throw an \Error.
+     *
+     * @return Promise<mixed> Resolves either with the current value or with the newly set value. Fails with a
+     * CacheException or SerializationException on failure.
+     *
+     * @throws CacheException
+     * @throws SerializationException
+     */
+    public function setIfAbsent(string $key, $value, ?int $ttl = null): Promise
+    {
+        return call(function () use ($key, $value, $ttl): \Generator {
+            $lock = yield from $this->lock($key);
+            \assert($lock instanceof Lock);
+
+            $currentValue = yield $this->cache->get($key);
+
+            if ($currentValue !== null) {
+                return $currentValue;
+            }
+
+            try {
+                yield $this->cache->set($key, $value, $ttl);
+            } finally {
+                $lock->release();
+            }
+
+            return $value;
+        });
+    }
+
+    /**
+     * The lock is obtained for the key and the value is set only if the key already exists.
+     *
+     * @param $key   string Cache key.
+     * @param $value mixed Value to cache.
+     * @param $ttl   int Timeout in seconds. The default `null` $ttl value indicates no timeout. Values less than 0 MUST
+     *               throw an \Error.
+     *
+     * @return Promise<mixed|null> Resolves either with null if the key did not exist or with the newly set value.
+     * Fails with a CacheException or SerializationException on failure.
+     *
+     * @throws CacheException
+     * @throws SerializationException
+     */
+    public function setIfPresent(string $key, $value, ?int $ttl = null): Promise
+    {
+        return call(function () use ($key, $value, $ttl): \Generator {
+            $lock = yield from $this->lock($key);
+            \assert($lock instanceof Lock);
+
+            $currentValue = yield $this->cache->get($key);
+
+            if ($currentValue === null) {
+                return null;
+            }
+
+            try {
+                yield $this->cache->set($key, $value, $ttl);
+            } finally {
+                $lock->release();
+            }
+
+            return $value;
         });
     }
 
@@ -143,31 +286,26 @@ final class AtomicCache
     }
 
     /**
-     * The lock is obtained for the key before setting the value.
+     * Returns the cached value for the key or the given default value if the key does not exist.
      *
-     * @param $key   string Cache key.
-     * @param $value mixed Value to cache.
-     * @param $ttl   int Timeout in seconds. The default `null` $ttl value indicates no timeout. Values less than 0 MUST
-     *               throw an \Error.
+     * @param string $key Cache key.
+     * @param mixed  $default Default value returned if the key does not exist.
      *
-     * @return Promise<void> Resolves either successfully or fails with a CacheException on failure.
+     * @return Promise<mixed|null>
      *
      * @throws CacheException
      * @throws SerializationException
-     *
-     * @see SerializedCache::set()
      */
-    public function set(string $key, $value, ?int $ttl = null): Promise
+    public function getOrDefault(string $key, $default): Promise
     {
-        return call(function () use ($key, $value, $ttl): \Generator {
-            $lock = yield from $this->lock($key);
-            \assert($lock instanceof Lock);
+        return call(function () use ($key, $default): \Generator {
+            $value = yield $this->cache->get($key);
 
-            try {
-                yield $this->cache->set($key, $value, $ttl);
-            } finally {
-                $lock->release();
+            if ($value === null) {
+                return $default;
             }
+
+            return $value;
         });
     }
 
