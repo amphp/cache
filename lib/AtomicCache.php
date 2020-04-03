@@ -32,8 +32,8 @@ final class AtomicCache
      * the promise returned from this method is resolved with the value.
      *
      * @param string   $key
-     * @param callable(string $key, null $value): mixed $create
-     * @param int|null $ttl
+     * @param callable(string $key, mixed|null $value): mixed $create
+     * @param int|null $ttl Timeout in seconds. The default `null` $ttl value indicates no timeout.
      *
      * @return Promise<mixed>
      *
@@ -61,9 +61,9 @@ final class AtomicCache
      * is invoked with the key as the first parameter and null as the second parameter. The value returned from the
      * callback is stored in the cache and the promise returned from this method is resolved with the value.
      *
-     * @param string   $key
+     * @param string   $key Cache key.
      * @param callable(string $key, null $value): mixed $create
-     * @param int|null $ttl
+     * @param int|null $ttl Timeout in seconds. The default `null` $ttl value indicates no timeout.
      *
      * @return Promise<mixed>
      *
@@ -103,9 +103,9 @@ final class AtomicCache
      * returned from the callback is stored in the cache and the promise returned from this method is resolved with
      * the value.
      *
-     * @param string   $key
-     * @param callable(string $key, null $value): mixed $create
-     * @param int|null $ttl
+     * @param string   $key Cache key.
+     * @param callable(string $key, mixed $value): mixed $create
+     * @param int|null $ttl Timeout in seconds. The default `null` $ttl value indicates no timeout.
      *
      * @return Promise<mixed>
      *
@@ -142,10 +142,9 @@ final class AtomicCache
     /**
      * The lock is obtained for the key before setting the value.
      *
-     * @param $key   string Cache key.
-     * @param $value mixed Value to cache.
-     * @param $ttl   int Timeout in seconds. The default `null` $ttl value indicates no timeout. Values less than 0 MUST
-     *               throw an \Error.
+     * @param string   $key   Cache key.
+     * @param mixed    $value Value to cache.
+     * @param int|null $ttl   Timeout in seconds. The default `null` $ttl value indicates no timeout.
      *
      * @return Promise<void> Resolves either successfully or fails with a CacheException on failure.
      *
@@ -171,10 +170,9 @@ final class AtomicCache
     /**
      * The lock is obtained for the key and the value is set only if the key does not exist.
      *
-     * @param $key   string Cache key.
-     * @param $value mixed Value to cache.
-     * @param $ttl   int Timeout in seconds. The default `null` $ttl value indicates no timeout. Values less than 0 MUST
-     *               throw an \Error.
+     * @param string   $key   Cache key.
+     * @param mixed    $value Value to cache.
+     * @param int|null $ttl   Timeout in seconds. The default `null` $ttl value indicates no timeout.
      *
      * @return Promise<mixed> Resolves either with the current value or with the newly set value. Fails with a
      * CacheException or SerializationException on failure.
@@ -207,10 +205,9 @@ final class AtomicCache
     /**
      * The lock is obtained for the key and the value is set only if the key already exists.
      *
-     * @param $key   string Cache key.
-     * @param $value mixed Value to cache.
-     * @param $ttl   int Timeout in seconds. The default `null` $ttl value indicates no timeout. Values less than 0 MUST
-     *               throw an \Error.
+     * @param string   $key   Cache key.
+     * @param mixed    $value Value to cache.
+     * @param int|null $ttl   Timeout in seconds. The default `null` $ttl value indicates no timeout.
      *
      * @return Promise<mixed|null> Resolves either with null if the key did not exist or with the newly set value.
      * Fails with a CacheException or SerializationException on failure.
@@ -271,32 +268,19 @@ final class AtomicCache
     }
 
     /**
-     * @param $key string Cache key.
+     * Returns the cached value for the key or the given default value if the key does not exist.
      *
-     * @return Promise<mixed|null>
+     * @param string     $key     Cache key.
+     * @param mixed|null $default Default value returned if the key does not exist. Null by default.
+     *
+     * @return Promise<mixed|null> Resolved with null iff $default is null.
      *
      * @throws CacheException
      * @throws SerializationException
      *
      * @see SerializedCache::get()
      */
-    public function get(string $key): Promise
-    {
-        return $this->cache->get($key);
-    }
-
-    /**
-     * Returns the cached value for the key or the given default value if the key does not exist.
-     *
-     * @param string $key Cache key.
-     * @param mixed  $default Default value returned if the key does not exist.
-     *
-     * @return Promise<mixed|null>
-     *
-     * @throws CacheException
-     * @throws SerializationException
-     */
-    public function getOrDefault(string $key, $default): Promise
+    public function get(string $key, $default = null): Promise
     {
         return call(function () use ($key, $default): \Generator {
             $value = yield $this->cache->get($key);

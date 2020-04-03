@@ -276,11 +276,11 @@ class AtomicCacheTest extends AsyncTestCase
         $internalCache = new SerializedCache(new ArrayCache, new PassthroughSerializer);
         $atomicCache = new AtomicCache($internalCache, new LocalKeyedMutex);
 
-        $this->assertSame('default', yield $atomicCache->getOrDefault('key', 'default'));
+        $this->assertSame('default', yield $atomicCache->get('key', 'default'));
 
         yield $internalCache->set('key', 'value');
 
-        $this->assertSame('value', yield $atomicCache->getOrDefault('key', 'default'));
+        $this->assertSame('value', yield $atomicCache->get('key', 'default'));
     }
 
     public function testFailingMutex(): Promise
