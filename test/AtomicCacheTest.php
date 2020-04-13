@@ -188,22 +188,6 @@ class AtomicCacheTest extends AsyncTestCase
         });
     }
 
-    public function testSetIfAbsent(): \Generator
-    {
-        $internalCache = new SerializedCache(new ArrayCache, new PassthroughSerializer);
-        $atomicCache = new AtomicCache($internalCache, new LocalKeyedMutex);
-
-        $result = yield $atomicCache->setIfAbsent('key', 'value');
-
-        $this->assertSame('value', $result);
-        $this->assertSame('value', yield $atomicCache->get('key'));
-
-        $result = yield $atomicCache->setIfAbsent('key', 'new-value');
-
-        $this->assertSame('value', $result);
-        $this->assertSame('value', yield $atomicCache->get('key'));
-    }
-
     public function testSetNull(): Promise
     {
         $this->expectException(CacheException::class);
@@ -284,7 +268,7 @@ class AtomicCacheTest extends AsyncTestCase
         $internalCache = new SerializedCache(new ArrayCache, new PassthroughSerializer);
         $atomicCache = new AtomicCache($internalCache, new LocalKeyedMutex);
 
-        $setPromise = $atomicCache->setIfAbsent('key', 'value');
+        yield $atomicCache->set('key', 'value');
 
         $computePromise = $atomicCache->computeIfPresent('key', function (): string {
             return 'new-value';
@@ -292,7 +276,6 @@ class AtomicCacheTest extends AsyncTestCase
 
         $deletePromise = $atomicCache->delete('key');
 
-        $this->assertSame('value', yield $setPromise);
         $this->assertSame('new-value', yield $computePromise);
         $this->assertTrue(yield $deletePromise);
     }

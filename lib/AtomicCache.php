@@ -167,41 +167,6 @@ final class AtomicCache
         });
     }
 
-    /**
-     * The lock is obtained for the key and the value is set only if the key does not exist.
-     *
-     * @param string   $key   Cache key.
-     * @param mixed    $value Value to cache.
-     * @param int|null $ttl   Timeout in seconds. The default `null` $ttl value indicates no timeout.
-     *
-     * @return Promise<mixed> Resolves either with the current value or with the newly set value. Fails with a
-     * CacheException or SerializationException on failure.
-     *
-     * @throws CacheException
-     * @throws SerializationException
-     */
-    public function setIfAbsent(string $key, $value, ?int $ttl = null): Promise
-    {
-        return call(function () use ($key, $value, $ttl): \Generator {
-            $lock = yield from $this->lock($key);
-            \assert($lock instanceof Lock);
-
-            try {
-                $currentValue = yield $this->cache->get($key);
-
-                if ($currentValue !== null) {
-                    return $currentValue;
-                }
-
-                yield $this->cache->set($key, $value, $ttl);
-            } finally {
-                $lock->release();
-            }
-
-            return $value;
-        });
-    }
-
     private function lock(string $key): \Generator
     {
         try {
