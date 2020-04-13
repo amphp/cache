@@ -263,7 +263,7 @@ final class AtomicCache
      *
      * @param string $key
      *
-     * @return Promise<bool>
+     * @return Promise<bool|null>
      *
      * @see SerializedCache::delete()
      */
