@@ -29,6 +29,8 @@ final class SerializedCache
      *
      * @return Promise<mixed|null> Resolves to the cached value or `null` if it doesn't exist. Fails with a
      * CacheException or SerializationException on failure.
+     *
+     * @see Cache::get()
      */
     public function get(string $key): Promise
     {
@@ -51,6 +53,8 @@ final class SerializedCache
      *               throw an \Error.
      *
      * @return Promise<void> Resolves either successfully or fails with a CacheException or SerializationException.
+     *
+     * @see Cache::set()
      */
     public function set(string $key, $value, int $ttl = null): Promise
     {
@@ -72,8 +76,10 @@ final class SerializedCache
      *
      * @param $key string Cache key.
      *
-     * @return Promise<bool> Resolves to `true` / `false` to indicate whether the key existed or fails with a
-     * CacheException on failure.
+     * @return Promise<bool|null> Resolves to `true` / `false` to indicate whether the key existed or fails with a
+     * CacheException on failure. May also resolve with `null` if that information is not available.
+     *
+     * @see Cache::delete()
      */
     public function delete(string $key): Promise
     {

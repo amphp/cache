@@ -44,8 +44,8 @@ interface Cache
      *
      * @param $key string Cache key.
      *
-     * @return Promise<bool> Resolves to `true` / `false` to indicate whether the key existed or fails with a
-     * CacheException on failure.
+     * @return Promise<bool|null> Resolves to `true` / `false` to indicate whether the key existed or fails with a
+     * CacheException on failure. May also resolve with `null` if that information is not available.
      */
     public function delete(string $key): Promise;
 }
