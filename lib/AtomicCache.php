@@ -58,11 +58,11 @@ final class AtomicCache
 
     /**
      * Attempts to get the value for the given key. If the key is not found, the key is locked, the $create callback
-     * is invoked with the key as the first parameter and null as the second parameter. The value returned from the
-     * callback is stored in the cache and the promise returned from this method is resolved with the value.
+     * is invoked with the key as the first parameter. The value returned from the callback is stored in the cache and
+     * the promise returned from this method is resolved with the value.
      *
      * @param string   $key Cache key.
-     * @param callable(string $key, null $value): mixed $create
+     * @param callable(string $key): mixed $create
      * @param int|null $ttl Timeout in seconds. The default `null` $ttl value indicates no timeout.
      *
      * @return Promise<mixed>
@@ -202,41 +202,6 @@ final class AtomicCache
         });
     }
 
-    /**
-     * The lock is obtained for the key and the value is set only if the key already exists.
-     *
-     * @param string   $key   Cache key.
-     * @param mixed    $value Value to cache.
-     * @param int|null $ttl   Timeout in seconds. The default `null` $ttl value indicates no timeout.
-     *
-     * @return Promise<mixed|null> Resolves either with null if the key did not exist or with the newly set value.
-     * Fails with a CacheException or SerializationException on failure.
-     *
-     * @throws CacheException
-     * @throws SerializationException
-     */
-    public function setIfPresent(string $key, $value, ?int $ttl = null): Promise
-    {
-        return call(function () use ($key, $value, $ttl): \Generator {
-            $lock = yield from $this->lock($key);
-            \assert($lock instanceof Lock);
-
-            try {
-                $currentValue = yield $this->cache->get($key);
-
-                if ($currentValue === null) {
-                    return null;
-                }
-
-                yield $this->cache->set($key, $value, $ttl);
-            } finally {
-                $lock->release();
-            }
-
-            return $value;
-        });
-    }
-
     private function lock(string $key): \Generator
     {
         try {
@@ -309,50 +274,6 @@ final class AtomicCache
             \assert($lock instanceof Lock);
 
             try {
-                return yield $this->cache->delete($key);
-            } finally {
-                $lock->release();
-            }
-        });
-    }
-
-    /**
-     * Deletes the cached value for the given key if the $check callback function returns a truthy value. If the cache
-     * does not contain the given key, the callback is not invoked.
-     *
-     * @param string   $key
-     * @param callable(string $key, mixed $value): bool $check
-     *
-     * @return Promise<bool> Resolves with true if the key was present and subsequently deleted from the cache or
-     *                       false if the key was not deleted from the cache.
-     */
-    public function deleteIf(string $key, callable $check): Promise
-    {
-        return call(function () use ($key, $check): \Generator {
-            $lock = yield from $this->lock($key);
-            \assert($lock instanceof Lock);
-
-            try {
-                $value = yield $this->cache->get($key);
-
-                if ($value === null) {
-                    return false;
-                }
-
-                try {
-                    $result = yield call($check, $key, $value);
-                } catch (\Throwable $exception) {
-                    throw new CacheException(
-                        \sprintf('Exception thrown from delete callback for key "%s"', $key),
-                        0,
-                        $exception
-                    );
-                }
-
-                if (!$result) {
-                    return false;
-                }
-
                 return yield $this->cache->delete($key);
             } finally {
                 $lock->release();

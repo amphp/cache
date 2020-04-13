@@ -204,24 +204,6 @@ class AtomicCacheTest extends AsyncTestCase
         $this->assertSame('value', yield $atomicCache->get('key'));
     }
 
-    public function testSetIfPresent(): \Generator
-    {
-        $internalCache = new SerializedCache(new ArrayCache, new PassthroughSerializer);
-        $atomicCache = new AtomicCache($internalCache, new LocalKeyedMutex);
-
-        $result = yield $atomicCache->setIfPresent('key', 'value');
-
-        $this->assertNull($result);
-        $this->assertNull(yield $atomicCache->get('key'));
-
-        yield $internalCache->set('key', 'value');
-
-        $result = yield $atomicCache->setIfPresent('key', 'new-value');
-
-        $this->assertSame('new-value', $result);
-        $this->assertSame('new-value', yield $atomicCache->get('key'));
-    }
-
     public function testSetNull(): Promise
     {
         $this->expectException(CacheException::class);
@@ -313,29 +295,5 @@ class AtomicCacheTest extends AsyncTestCase
         $this->assertSame('value', yield $setPromise);
         $this->assertSame('new-value', yield $computePromise);
         $this->assertTrue(yield $deletePromise);
-    }
-
-    public function testDeleteIf(): \Generator
-    {
-        $internalCache = new SerializedCache(new ArrayCache, new PassthroughSerializer);
-        $atomicCache = new AtomicCache($internalCache, new LocalKeyedMutex);
-
-        $this->assertFalse(yield $atomicCache->deleteIf('key', $this->createCallback(0)));
-
-        yield $atomicCache->set('key', 'value');
-
-        $this->assertFalse(yield $atomicCache->deleteIf('key', $this->createCallback(1, function (string $key, string $value): bool {
-            $this->assertSame('key', $key);
-            $this->assertSame('value', $value);
-            return false;
-        })));
-
-        $this->assertSame('value', yield $atomicCache->get('key'));
-
-        $this->assertTrue(yield $atomicCache->deleteIf('key', $this->createCallback(1, function (): bool {
-            return true;
-        })));
-
-        $this->assertNull(yield $atomicCache->get('key'));
     }
 }
