@@ -1,6 +1,6 @@
-sudo: false
-
 language: php
+dist: xenial
+os: linux
 
 php:
   - 7.1
@@ -9,7 +9,7 @@ php:
   - 7.4
   - nightly
 
-matrix:
+jobs:
   allow_failures:
     - php: nightly
   fast_finish: true
