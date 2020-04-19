@@ -8,17 +8,20 @@ use Amp\Sync\KeyedMutex;
 use Amp\Sync\Lock;
 use function Amp\call;
 
+/**
+ * @template TValue
+ */
 final class AtomicCache
 {
-    /** @var SerializedCache */
+    /** @var SerializedCache<TValue> */
     private $cache;
 
     /** @var KeyedMutex */
     private $mutex;
 
     /**
-     * @param SerializedCache $cache
-     * @param KeyedMutex      $mutex
+     * @param SerializedCache<TValue> $cache
+     * @param KeyedMutex              $mutex
      */
     public function __construct(SerializedCache $cache, KeyedMutex $mutex)
     {
@@ -32,10 +35,14 @@ final class AtomicCache
      * the promise returned from this method is resolved with the value.
      *
      * @param string   $key
-     * @param callable(string $key, mixed|null $value): mixed $create
+     * @param callable(string, mixed|null): mixed $create Receives $key and $value as parameters.
      * @param int|null $ttl Timeout in seconds. The default `null` $ttl value indicates no timeout.
      *
      * @return Promise<mixed>
+     *
+     * @psalm-param callable(string, TValue|null):(TValue|Promise<TValue>|\Generator<mixed, mixed, mixed, TValue>)
+     *     $create
+     * @psalm-return Promise<TValue>
      *
      * @throws CacheException If the $create callback throws an exception while generating the value.
      * @throws SerializationException If serializing the value returned from the callback fails.
@@ -62,10 +69,14 @@ final class AtomicCache
      * the promise returned from this method is resolved with the value.
      *
      * @param string   $key Cache key.
-     * @param callable(string $key): mixed $create
+     * @param callable(string): mixed $create Receives $key as parameter.
      * @param int|null $ttl Timeout in seconds. The default `null` $ttl value indicates no timeout.
      *
      * @return Promise<mixed>
+     *
+     * @psalm-param callable(string, TValue|null):(TValue|Promise<TValue>|\Generator<mixed, mixed, mixed, TValue>)
+     *     $create
+     * @psalm-return Promise<TValue>
      *
      * @throws CacheException If the $create callback throws an exception while generating the value.
      * @throws SerializationException If serializing the value returned from the callback fails.
@@ -104,10 +115,13 @@ final class AtomicCache
      * the value.
      *
      * @param string   $key Cache key.
-     * @param callable(string $key, mixed $value): mixed $create
+     * @param callable(string, mixed): mixed $create Receives $key and $value as parameters.
      * @param int|null $ttl Timeout in seconds. The default `null` $ttl value indicates no timeout.
      *
      * @return Promise<mixed>
+     *
+     * @psalm-param callable(string, TValue|null): (TValue|Promise<TValue>|\Generator<mixed, mixed, mixed, TValue>) $create
+     * @psalm-return Promise<TValue>
      *
      * @throws CacheException If the $create callback throws an exception while generating the value.
      * @throws SerializationException If serializing the value returned from the callback fails.
@@ -142,11 +156,14 @@ final class AtomicCache
     /**
      * The lock is obtained for the key before setting the value.
      *
-     * @param string   $key   Cache key.
+     * @param string   $key Cache key.
      * @param mixed    $value Value to cache.
-     * @param int|null $ttl   Timeout in seconds. The default `null` $ttl value indicates no timeout.
+     * @param int|null $ttl Timeout in seconds. The default `null` $ttl value indicates no timeout.
      *
      * @return Promise<void> Resolves either successfully or fails with a CacheException on failure.
+     *
+     * @psalm-param TValue $value
+     * @psalm-return Promise<null>
      *
      * @throws CacheException
      * @throws SerializationException
@@ -167,43 +184,18 @@ final class AtomicCache
         });
     }
 
-    private function lock(string $key): \Generator
-    {
-        try {
-            return yield $this->mutex->acquire($key);
-        } catch (\Throwable $exception) {
-            throw new CacheException(
-                \sprintf('Exception thrown when obtaining the lock for key "%s"', $key),
-                0,
-                $exception
-            );
-        }
-    }
-
-    private function create(callable $create, string $key, $value, ?int $ttl): \Generator
-    {
-        try {
-            $value = yield call($create, $key, $value);
-        } catch (\Throwable $exception) {
-            throw new CacheException(
-                \sprintf('Exception thrown while creating the value for key "%s"', $key),
-                0,
-                $exception
-            );
-        }
-
-        yield $this->cache->set($key, $value, $ttl);
-
-        return $value;
-    }
-
     /**
      * Returns the cached value for the key or the given default value if the key does not exist.
      *
-     * @param string     $key     Cache key.
-     * @param mixed|null $default Default value returned if the key does not exist. Null by default.
+     * @template TDefault
+     *
+     * @param string $key Cache key.
+     * @param mixed  $default Default value returned if the key does not exist. Null by default.
      *
      * @return Promise<mixed|null> Resolved with null iff $default is null.
+     *
+     * @psalm-param TDefault $default
+     * @psalm-return Promise<TValue|TDefault>
      *
      * @throws CacheException
      * @throws SerializationException
@@ -244,5 +236,39 @@ final class AtomicCache
                 $lock->release();
             }
         });
+    }
+
+    private function lock(string $key): \Generator
+    {
+        try {
+            return yield $this->mutex->acquire($key);
+        } catch (\Throwable $exception) {
+            throw new CacheException(
+                \sprintf('Exception thrown when obtaining the lock for key "%s"', $key),
+                0,
+                $exception
+            );
+        }
+    }
+
+    /**
+     * @psalm-param TValue|null $value
+     * @psalm-return \Generator<mixed, mixed, mixed, TValue>
+     */
+    private function create(callable $create, string $key, $value, ?int $ttl): \Generator
+    {
+        try {
+            $value = yield call($create, $key, $value);
+        } catch (\Throwable $exception) {
+            throw new CacheException(
+                \sprintf('Exception thrown while creating the value for key "%s"', $key),
+                0,
+                $exception
+            );
+        }
+
+        yield $this->cache->set($key, $value, $ttl);
+
+        return $value;
     }
 }

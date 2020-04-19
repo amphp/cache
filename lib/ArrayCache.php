@@ -9,8 +9,11 @@ use Amp\Success;
 
 final class ArrayCache implements Cache
 {
+    /** @var object */
     private $sharedState;
+    /** @var string */
     private $ttlWatcherId;
+    /** @var int|null */
     private $maxSize;
 
     /**
@@ -25,11 +28,14 @@ final class ArrayCache implements Cache
         $this->sharedState = $sharedState = new class {
             use Struct;
 
+            /** @var string[] */
             public $cache = [];
+            /** @var int[] */
             public $cacheTimeouts = [];
+            /** @var bool */
             public $isSortNeeded = false;
 
-            public function collectGarbage()
+            public function collectGarbage(): void
             {
                 $now = \time();
 
@@ -53,6 +59,7 @@ final class ArrayCache implements Cache
 
         $this->ttlWatcherId = Loop::repeat($gcInterval, [$sharedState, "collectGarbage"]);
         $this->maxSize = $maxSize;
+
         Loop::unreference($this->ttlWatcherId);
     }
 
@@ -60,6 +67,7 @@ final class ArrayCache implements Cache
     {
         $this->sharedState->cache = [];
         $this->sharedState->cacheTimeouts = [];
+
         Loop::cancel($this->ttlWatcherId);
     }
 
@@ -87,17 +95,19 @@ final class ArrayCache implements Cache
     {
         if ($ttl === null) {
             unset($this->sharedState->cacheTimeouts[$key]);
-        } elseif (\is_int($ttl) && $ttl >= 0) {
+        } elseif ($ttl >= 0) {
             $expiry = \time() + $ttl;
             $this->sharedState->cacheTimeouts[$key] = $expiry;
             $this->sharedState->isSortNeeded = true;
         } else {
             throw new \Error("Invalid cache TTL ({$ttl}; integer >= 0 or null required");
         }
+
         unset($this->sharedState->cache[$key]);
         if (\count($this->sharedState->cache) === $this->maxSize) {
             \array_shift($this->sharedState->cache);
         }
+
         $this->sharedState->cache[$key] = $value;
 
         return new Success;

@@ -17,8 +17,11 @@ final class FileCache implements Cache
         return \hash('sha256', $key) . '.cache';
     }
 
+    /** @var string */
     private $directory;
+    /** @var KeyedMutex */
     private $mutex;
+    /** @var string */
     private $gcWatcher;
 
     public function __construct(string $directory, KeyedMutex $mutex)
@@ -30,12 +33,12 @@ final class FileCache implements Cache
             throw new \Error(__CLASS__ . ' requires amphp/file to be installed');
         }
 
-        $gcWatcher = static function () use ($directory, $mutex) {
+        $gcWatcher = static function () use ($directory, $mutex): \Generator {
             try {
                 $files = yield File\scandir($directory);
 
                 foreach ($files as $file) {
-                    if (\strlen($file) !== 70 || !\substr($file, -\strlen('.cache')) === '.cache') {
+                    if (\strlen($file) !== 70 || \substr($file, -\strlen('.cache')) !== '.cache') {
                         continue;
                     }
 
@@ -47,7 +50,7 @@ final class FileCache implements Cache
                         $handle = yield File\open($directory . '/' . $file, 'r');
                         $ttl = yield $handle->read(4);
 
-                        if (\strlen($ttl) !== 4) {
+                        if ($ttl === null || \strlen($ttl) !== 4) {
                             yield $handle->close();
                             continue;
                         }
@@ -92,6 +95,10 @@ final class FileCache implements Cache
             try {
                 $cacheContent = yield File\get($this->directory . '/' . $filename);
 
+                if (\strlen($cacheContent) < 4) {
+                    return null;
+                }
+
                 $ttl = \unpack('Nttl', \substr($cacheContent, 0, 4))['ttl'];
                 if ($ttl < \time()) {
                     yield File\unlink($this->directory . '/' . $filename);
@@ -99,7 +106,11 @@ final class FileCache implements Cache
                     return null;
                 }
 
-                return \substr($cacheContent, 4);
+                $value = \substr($cacheContent, 4);
+
+                \assert(\is_string($value));
+
+                return $value;
             } catch (\Throwable $e) {
                 return null;
             } finally {

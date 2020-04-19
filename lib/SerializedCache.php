@@ -8,6 +8,9 @@ use Amp\Serialization\SerializationException;
 use Amp\Serialization\Serializer;
 use function Amp\call;
 
+/**
+ * @template TValue
+ */
 final class SerializedCache
 {
     /** @var Cache */
@@ -29,6 +32,8 @@ final class SerializedCache
      *
      * @return Promise<mixed|null> Resolves to the cached value or `null` if it doesn't exist. Fails with a
      * CacheException or SerializationException on failure.
+     *
+     * @psalm-return Promise<TValue|null>
      *
      * @see Cache::get()
      */
@@ -52,7 +57,9 @@ final class SerializedCache
      * @param $ttl   int Timeout in seconds. The default `null` $ttl value indicates no timeout. Values less than 0 MUST
      *               throw an \Error.
      *
-     * @return Promise<void> Resolves either successfully or fails with a CacheException or SerializationException.
+     * @psalm-param TValue $value
+     *
+     * @return Promise<null> Resolves either successfully or fails with a CacheException or SerializationException.
      *
      * @see Cache::set()
      */
