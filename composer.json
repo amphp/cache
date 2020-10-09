@@ -13,23 +13,29 @@
             "email": "me@kelunik.com"
         },
         {
+            "name": "Aaron Piotrowski",
+            "email": "aaron@trowski.com"
+        },
+        {
             "name": "Daniel Lowrey",
             "email": "rdlowrey@php.net"
         }
     ],
     "require": {
-        "php": ">=7.1",
-        "amphp/amp": "^2",
+        "php": ">=8",
+        "amphp/amp": "^3-dev",
         "amphp/serialization": "^1",
-        "amphp/sync": "^1.2"
+        "amphp/sync": "^2-dev"
     },
     "require-dev": {
-        "amphp/phpunit-util": "^1.1",
-        "phpunit/phpunit": "^6 | ^7 | ^8 | ^9",
+        "amphp/phpunit-util": "^2-dev",
+        "phpunit/phpunit": "^9",
         "amphp/php-cs-fixer-config": "dev-master",
-        "amphp/file": "^1",
-        "vimeo/psalm": "^3.11@dev"
+        "amphp/file": "^2-dev",
+        "psalm/phar": "^3.11@dev"
     },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
     "autoload": {
         "psr-4": {
             "Amp\\Cache\\": "lib"
@@ -41,6 +47,6 @@
         }
     },
     "conflict": {
-        "amphp/file": "<0.2 || >=2"
+        "amphp/file": "<2 || >=3"
     }
 }

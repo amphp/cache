@@ -2,8 +2,6 @@
 
 namespace Amp\Cache;
 
-use Amp\Promise;
-
 interface Cache
 {
     /**
@@ -13,10 +11,10 @@ interface Cache
      *
      * @param $key string Cache key.
      *
-     * @return Promise<string|null> Resolves to the cached value nor `null` if it doesn't exist or fails with a
+     * @return string|null Returns the cached value nor `null` if it doesn't exist or fails with a
      * CacheException on failure.
      */
-    public function get(string $key): Promise;
+    public function get(string $key): ?string;
 
     /**
      * Sets a value associated with the given key. Overrides existing values (if they exist).
@@ -28,10 +26,8 @@ interface Cache
      * @param $value string Value to cache.
      * @param $ttl int Timeout in seconds. The default `null` $ttl value indicates no timeout. Values less than 0 MUST
      * throw an \Error.
-     *
-     * @return Promise<null> Resolves either successfully or fails with a CacheException on failure.
      */
-    public function set(string $key, string $value, int $ttl = null): Promise;
+    public function set(string $key, string $value, int $ttl = null): void;
 
     /**
      * Deletes a value associated with the given key if it exists.
@@ -44,8 +40,8 @@ interface Cache
      *
      * @param $key string Cache key.
      *
-     * @return Promise<bool|null> Resolves to `true` / `false` to indicate whether the key existed or fails with a
-     * CacheException on failure. May also resolve with `null` if that information is not available.
+     * @return bool|null Returns `true` / `false` to indicate whether the key existed or fails with a
+     * CacheException on failure. May also return `null` if that information is not available.
      */
-    public function delete(string $key): Promise;
+    public function delete(string $key): ?bool;
 }

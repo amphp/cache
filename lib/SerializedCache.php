@@ -2,22 +2,16 @@
 
 namespace Amp\Cache;
 
-use Amp\Failure;
-use Amp\Promise;
-use Amp\Serialization\SerializationException;
 use Amp\Serialization\Serializer;
-use function Amp\call;
 
 /**
  * @template TValue
  */
 final class SerializedCache
 {
-    /** @var Cache */
-    private $cache;
+    private Cache $cache;
 
-    /** @var Serializer */
-    private $serializer;
+    private Serializer $serializer;
 
     public function __construct(Cache $cache, Serializer $serializer)
     {
@@ -30,52 +24,45 @@ final class SerializedCache
      *
      * @param $key string Cache key.
      *
-     * @return Promise<mixed|null> Resolves to the cached value or `null` if it doesn't exist. Fails with a
-     * CacheException or SerializationException on failure.
+     * @return mixed Returns the cached value or `null` if it doesn't exist. Throws a CacheException or
+     * SerializationException on failure.
      *
      * @psalm-return Promise<TValue|null>
      *
      * @see Cache::get()
      */
-    public function get(string $key): Promise
+    public function get(string $key): mixed
     {
-        return call(function () use ($key) {
-            $data = yield $this->cache->get($key);
-            if ($data === null) {
-                return null;
-            }
+        $data = $this->cache->get($key);
+        if ($data === null) {
+            return null;
+        }
 
-            return $this->serializer->unserialize($data);
-        });
+        return $this->serializer->unserialize($data);
     }
 
     /**
      * Serializes a value and stores its serialization to the cache.
      *
-     * @param $key   string Cache key.
-     * @param $value mixed Value to cache.
-     * @param $ttl   int Timeout in seconds. The default `null` $ttl value indicates no timeout. Values less than 0 MUST
+     * @param string $key Cache key.
+     * @param mixed $value Value to cache.
+     * @param int|null $ttl Timeout in seconds. The default `null` $ttl value indicates no timeout. Values less than 0 MUST
      *               throw an \Error.
      *
      * @psalm-param TValue $value
      *
-     * @return Promise<null> Resolves either successfully or fails with a CacheException or SerializationException.
-     *
      * @see Cache::set()
      */
-    public function set(string $key, $value, int $ttl = null): Promise
+    public function set(string $key, mixed $value, ?int $ttl = null): void
     {
         if ($value === null) {
-            return new Failure(new CacheException('Cannot store NULL in serialized cache'));
+            throw new CacheException('Cannot store NULL in serialized cache');
         }
 
-        try {
-            $value = $this->serializer->serialize($value);
-        } catch (SerializationException $exception) {
-            return new Failure($exception);
-        }
+        $value = $this->serializer->serialize($value);
 
-        return $this->cache->set($key, $value, $ttl);
+
+        $this->cache->set($key, $value, $ttl);
     }
 
     /**
@@ -83,12 +70,12 @@ final class SerializedCache
      *
      * @param $key string Cache key.
      *
-     * @return Promise<bool|null> Resolves to `true` / `false` to indicate whether the key existed or fails with a
-     * CacheException on failure. May also resolve with `null` if that information is not available.
+     * @return bool|null Returns `true` / `false` to indicate whether the key existed or fails with a
+     * CacheException on failure. May also return `null` if that information is not available.
      *
      * @see Cache::delete()
      */
-    public function delete(string $key): Promise
+    public function delete(string $key): ?bool
     {
         return $this->cache->delete($key);
     }

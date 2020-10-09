@@ -2,12 +2,10 @@
 
 namespace Amp\Cache;
 
-use Amp\Promise;
-
 final class PrefixCache implements Cache
 {
-    private $cache;
-    private $keyPrefix;
+    private Cache $cache;
+    private string $keyPrefix;
 
     public function __construct(Cache $cache, string $keyPrefix)
     {
@@ -26,19 +24,19 @@ final class PrefixCache implements Cache
     }
 
     /** @inheritdoc */
-    public function get(string $key): Promise
+    public function get(string $key): ?string
     {
         return $this->cache->get($this->keyPrefix . $key);
     }
 
     /** @inheritdoc */
-    public function set(string $key, string $value, int $ttl = null): Promise
+    public function set(string $key, string $value, int $ttl = null): void
     {
-        return $this->cache->set($this->keyPrefix . $key, $value, $ttl);
+        $this->cache->set($this->keyPrefix . $key, $value, $ttl);
     }
 
     /** @inheritdoc */
-    public function delete(string $key): Promise
+    public function delete(string $key): ?bool
     {
         return $this->cache->delete($this->keyPrefix . $key);
     }

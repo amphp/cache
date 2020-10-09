@@ -6,6 +6,7 @@ use Amp\Promise;
 use Amp\Serialization\SerializationException;
 use Amp\Sync\KeyedMutex;
 use Amp\Sync\Lock;
+use function Amp\await;
 use function Amp\call;
 
 /**
@@ -14,10 +15,9 @@ use function Amp\call;
 final class AtomicCache
 {
     /** @var SerializedCache<TValue> */
-    private $cache;
+    private SerializedCache $cache;
 
-    /** @var KeyedMutex */
-    private $mutex;
+    private KeyedMutex $mutex;
 
     /**
      * @param SerializedCache<TValue> $cache
@@ -38,7 +38,7 @@ final class AtomicCache
      * @param callable(string, mixed|null): mixed $create Receives $key and $value as parameters.
      * @param int|null $ttl Timeout in seconds. The default `null` $ttl value indicates no timeout.
      *
-     * @return Promise<mixed>
+     * @return mixed
      *
      * @psalm-param callable(string, TValue|null):(TValue|Promise<TValue>|\Generator<mixed, mixed, mixed, TValue>)
      *     $create
@@ -47,20 +47,17 @@ final class AtomicCache
      * @throws CacheException If the $create callback throws an exception while generating the value.
      * @throws SerializationException If serializing the value returned from the callback fails.
      */
-    public function compute(string $key, callable $create, ?int $ttl = null): Promise
+    public function compute(string $key, callable $create, ?int $ttl = null): mixed
     {
-        return call(function () use ($key, $create, $ttl): \Generator {
-            $lock = yield from $this->lock($key);
-            \assert($lock instanceof Lock);
+        $lock = $this->lock($key);
 
-            try {
-                $value = yield $this->cache->get($key);
+        try {
+            $value = $this->cache->get($key);
 
-                return yield from $this->create($create, $key, $value, $ttl);
-            } finally {
-                $lock->release();
-            }
-        });
+            return $this->create($create, $key, $value, $ttl);
+        } finally {
+            $lock->release();
+        }
     }
 
     /**
@@ -72,7 +69,7 @@ final class AtomicCache
      * @param callable(string): mixed $create Receives $key as parameter.
      * @param int|null $ttl Timeout in seconds. The default `null` $ttl value indicates no timeout.
      *
-     * @return Promise<mixed>
+     * @return mixed
      *
      * @psalm-param callable(string, TValue|null):(TValue|Promise<TValue>|\Generator<mixed, mixed, mixed, TValue>)
      *     $create
@@ -81,31 +78,28 @@ final class AtomicCache
      * @throws CacheException If the $create callback throws an exception while generating the value.
      * @throws SerializationException If serializing the value returned from the callback fails.
      */
-    public function computeIfAbsent(string $key, callable $create, ?int $ttl = null): Promise
+    public function computeIfAbsent(string $key, callable $create, ?int $ttl = null): mixed
     {
-        return call(function () use ($key, $create, $ttl): \Generator {
-            $value = yield $this->cache->get($key);
+        $value = $this->cache->get($key);
+
+        if ($value !== null) {
+            return $value;
+        }
+
+        $lock = $this->lock($key);
+
+        try {
+            // Attempt to get the value again, since it may have been set while obtaining the lock.
+            $value = $this->cache->get($key);
 
             if ($value !== null) {
                 return $value;
             }
 
-            $lock = yield from $this->lock($key);
-            \assert($lock instanceof Lock);
-
-            try {
-                // Attempt to get the value again, since it may have been set while obtaining the lock.
-                $value = yield $this->cache->get($key);
-
-                if ($value !== null) {
-                    return $value;
-                }
-
-                return yield from $this->create($create, $key, null, $ttl);
-            } finally {
-                $lock->release();
-            }
-        });
+            return $this->create($create, $key, null, $ttl);
+        } finally {
+            $lock->release();
+        }
     }
 
     /**
@@ -118,7 +112,7 @@ final class AtomicCache
      * @param callable(string, mixed): mixed $create Receives $key and $value as parameters.
      * @param int|null $ttl Timeout in seconds. The default `null` $ttl value indicates no timeout.
      *
-     * @return Promise<mixed>
+     * @return mixed
      *
      * @psalm-param callable(string, TValue|null): (TValue|Promise<TValue>|\Generator<mixed, mixed, mixed, TValue>) $create
      * @psalm-return Promise<TValue>
@@ -126,31 +120,28 @@ final class AtomicCache
      * @throws CacheException If the $create callback throws an exception while generating the value.
      * @throws SerializationException If serializing the value returned from the callback fails.
      */
-    public function computeIfPresent(string $key, callable $create, ?int $ttl = null): Promise
+    public function computeIfPresent(string $key, callable $create, ?int $ttl = null): mixed
     {
-        return call(function () use ($key, $create, $ttl): \Generator {
-            $value = yield $this->cache->get($key);
+        $value = $this->cache->get($key);
+
+        if ($value === null) {
+            return null;
+        }
+
+        $lock = $this->lock($key);
+
+        try {
+            // Attempt to get the value again, since it may have been set while obtaining the lock.
+            $value = $this->cache->get($key);
 
             if ($value === null) {
                 return null;
             }
 
-            $lock = yield from $this->lock($key);
-            \assert($lock instanceof Lock);
-
-            try {
-                // Attempt to get the value again, since it may have been set while obtaining the lock.
-                $value = yield $this->cache->get($key);
-
-                if ($value === null) {
-                    return null;
-                }
-
-                return yield from $this->create($create, $key, $value, $ttl);
-            } finally {
-                $lock->release();
-            }
-        });
+            return $this->create($create, $key, $value, $ttl);
+        } finally {
+            $lock->release();
+        }
     }
 
     /**
@@ -170,18 +161,15 @@ final class AtomicCache
      *
      * @see SerializedCache::set()
      */
-    public function set(string $key, $value, ?int $ttl = null): Promise
+    public function set(string $key, $value, ?int $ttl = null): void
     {
-        return call(function () use ($key, $value, $ttl): \Generator {
-            $lock = yield from $this->lock($key);
-            \assert($lock instanceof Lock);
+        $lock = $this->lock($key);
 
-            try {
-                yield $this->cache->set($key, $value, $ttl);
-            } finally {
-                $lock->release();
-            }
-        });
+        try {
+            $this->cache->set($key, $value, $ttl);
+        } finally {
+            $lock->release();
+        }
     }
 
     /**
@@ -192,7 +180,7 @@ final class AtomicCache
      * @param string $key Cache key.
      * @param mixed  $default Default value returned if the key does not exist. Null by default.
      *
-     * @return Promise<mixed|null> Resolved with null iff $default is null.
+     * @return mixed Resolved with null iff $default is null.
      *
      * @psalm-param TDefault $default
      * @psalm-return Promise<TValue|TDefault>
@@ -202,17 +190,15 @@ final class AtomicCache
      *
      * @see SerializedCache::get()
      */
-    public function get(string $key, $default = null): Promise
+    public function get(string $key, mixed $default = null): mixed
     {
-        return call(function () use ($key, $default): \Generator {
-            $value = yield $this->cache->get($key);
+        $value = $this->cache->get($key);
 
-            if ($value === null) {
-                return $default;
-            }
+        if ($value === null) {
+            return $default;
+        }
 
-            return $value;
-        });
+        return $value;
     }
 
     /**
@@ -220,28 +206,25 @@ final class AtomicCache
      *
      * @param string $key
      *
-     * @return Promise<bool|null>
+     * @return bool|null
      *
      * @see SerializedCache::delete()
      */
-    public function delete(string $key): Promise
+    public function delete(string $key): ?bool
     {
-        return call(function () use ($key): \Generator {
-            $lock = yield from $this->lock($key);
-            \assert($lock instanceof Lock);
+        $lock = $this->lock($key);
 
-            try {
-                return yield $this->cache->delete($key);
-            } finally {
-                $lock->release();
-            }
-        });
+        try {
+            return $this->cache->delete($key);
+        } finally {
+            $lock->release();
+        }
     }
 
-    private function lock(string $key): \Generator
+    private function lock(string $key): Lock
     {
         try {
-            return yield $this->mutex->acquire($key);
+            return $this->mutex->acquire($key);
         } catch (\Throwable $exception) {
             throw new CacheException(
                 \sprintf('Exception thrown when obtaining the lock for key "%s"', $key),
@@ -253,12 +236,11 @@ final class AtomicCache
 
     /**
      * @psalm-param TValue|null $value
-     * @psalm-return \Generator<mixed, mixed, mixed, TValue>
      */
-    private function create(callable $create, string $key, $value, ?int $ttl): \Generator
+    private function create(callable $create, string $key, mixed $value, ?int $ttl): mixed
     {
         try {
-            $value = yield call($create, $key, $value);
+            $value = await(call($create, $key, $value));
         } catch (\Throwable $exception) {
             throw new CacheException(
                 \sprintf('Exception thrown while creating the value for key "%s"', $key),
@@ -267,7 +249,7 @@ final class AtomicCache
             );
         }
 
-        yield $this->cache->set($key, $value, $ttl);
+        $this->cache->set($key, $value, $ttl);
 
         return $value;
     }

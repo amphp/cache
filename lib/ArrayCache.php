@@ -3,22 +3,19 @@
 namespace Amp\Cache;
 
 use Amp\Loop;
-use Amp\Promise;
 use Amp\Struct;
-use Amp\Success;
 
 final class ArrayCache implements Cache
 {
-    /** @var object */
-    private $sharedState;
-    /** @var string */
-    private $ttlWatcherId;
-    /** @var int|null */
-    private $maxSize;
+    private object $sharedState;
+
+    private string $ttlWatcherId;
+
+    private ?int $maxSize;
 
     /**
      * @param int $gcInterval The frequency in milliseconds at which expired cache entries should be garbage collected.
-     * @param int $maxSize The maximum size of cache array (number of elements).
+     * @param int|null $maxSize The maximum size of cache array (number of elements). NULL for no max size.
      */
     public function __construct(int $gcInterval = 5000, int $maxSize = null)
     {
@@ -29,11 +26,11 @@ final class ArrayCache implements Cache
             use Struct;
 
             /** @var string[] */
-            public $cache = [];
+            public array $cache = [];
             /** @var int[] */
-            public $cacheTimeouts = [];
-            /** @var bool */
-            public $isSortNeeded = false;
+            public array $cacheTimeouts = [];
+
+            public bool $isSortNeeded = false;
 
             public function collectGarbage(): void
             {
@@ -72,10 +69,10 @@ final class ArrayCache implements Cache
     }
 
     /** @inheritdoc */
-    public function get(string $key): Promise
+    public function get(string $key): ?string
     {
         if (!isset($this->sharedState->cache[$key])) {
-            return new Success(null);
+            return null;
         }
 
         if (isset($this->sharedState->cacheTimeouts[$key]) && \time() > $this->sharedState->cacheTimeouts[$key]) {
@@ -84,14 +81,14 @@ final class ArrayCache implements Cache
                 $this->sharedState->cacheTimeouts[$key]
             );
 
-            return new Success(null);
+            return null;
         }
 
-        return new Success($this->sharedState->cache[$key]);
+        return $this->sharedState->cache[$key];
     }
 
     /** @inheritdoc */
-    public function set(string $key, string $value, int $ttl = null): Promise
+    public function set(string $key, string $value, int $ttl = null): void
     {
         if ($ttl === null) {
             unset($this->sharedState->cacheTimeouts[$key]);
@@ -109,12 +106,10 @@ final class ArrayCache implements Cache
         }
 
         $this->sharedState->cache[$key] = $value;
-
-        return new Success;
     }
 
     /** @inheritdoc */
-    public function delete(string $key): Promise
+    public function delete(string $key): bool
     {
         $exists = isset($this->sharedState->cache[$key]);
 
@@ -123,6 +118,6 @@ final class ArrayCache implements Cache
             $this->sharedState->cacheTimeouts[$key]
         );
 
-        return new Success($exists);
+        return $exists;
     }
 }

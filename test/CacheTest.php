@@ -3,54 +3,54 @@
 namespace Amp\Cache\Test;
 
 use Amp\Cache\Cache;
-use Amp\Delayed;
 use Amp\PHPUnit\AsyncTestCase;
+use function Amp\delay;
 
 abstract class CacheTest extends AsyncTestCase
 {
     abstract protected function createCache(): Cache;
 
-    public function testGet(): \Generator
+    public function testGet()
     {
         $cache = $this->createCache();
 
-        $result = yield $cache->get("mykey");
+        $result = $cache->get("mykey");
         $this->assertNull($result);
 
-        yield $cache->set("mykey", "myvalue", 10);
+        $cache->set("mykey", "myvalue", 10);
 
-        $result = yield $cache->get("mykey");
+        $result = $cache->get("mykey");
         $this->assertSame("myvalue", $result);
     }
 
-    public function testEntryIsNotReturnedAfterTTLHasPassed(): \Generator
+    public function testEntryIsNotReturnedAfterTTLHasPassed()
     {
         $cache = $this->createCache();
 
-        yield $cache->set("foo", "bar", 0);
-        yield new Delayed(1000);
+        $cache->set("foo", "bar", 0);
+        delay(1000);
 
-        $this->assertNull(yield $cache->get("foo"));
+        $this->assertNull($cache->get("foo"));
     }
 
-    public function testEntryIsReturnedWhenOverriddenWithNoTimeout(): \Generator
+    public function testEntryIsReturnedWhenOverriddenWithNoTimeout()
     {
         $cache = $this->createCache();
 
-        yield $cache->set("foo", "bar", 0);
-        yield $cache->set("foo", "bar");
-        yield new Delayed(1000);
+        $cache->set("foo", "bar", 0);
+        $cache->set("foo", "bar");
+        delay(1000);
 
-        $this->assertNotNull(yield $cache->get("foo"));
+        $this->assertNotNull($cache->get("foo"));
     }
 
-    public function testEntryIsNotReturnedAfterDelete(): \Generator
+    public function testEntryIsNotReturnedAfterDelete()
     {
         $cache = $this->createCache();
 
-        yield $cache->set("foo", "bar");
-        yield $cache->delete("foo");
+        $cache->set("foo", "bar");
+        $cache->delete("foo");
 
-        $this->assertNull(yield $cache->get("foo"));
+        $this->assertNull($cache->get("foo"));
     }
 }

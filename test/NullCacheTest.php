@@ -7,11 +7,11 @@ use Amp\PHPUnit\AsyncTestCase;
 
 class NullCacheTest extends AsyncTestCase
 {
-    public function test(): \Generator
+    public function test()
     {
         $cache = new NullCache;
-        $this->assertNull(yield $cache->set("foo", "bar"));
-        $this->assertNull(yield $cache->get("foo"));
-        $this->assertFalse(yield $cache->delete("foo"));
+        $cache->set("foo", "bar");
+        $this->assertNull($cache->get("foo"));
+        $this->assertFalse($cache->delete("foo"));
     }
 }
