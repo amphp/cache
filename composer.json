@@ -45,8 +45,5 @@
         "psr-4": {
             "Amp\\Cache\\Test\\": "test"
         }
-    },
-    "conflict": {
-        "amphp/file": "<2 || >=3"
     }
 }
