@@ -2,8 +2,8 @@
 
 namespace Amp\Cache;
 
-use Amp\Loop;
-use Amp\Struct;
+use Revolt\EventLoop\Internal\Struct;
+use Revolt\EventLoop\Loop;
 
 final class ArrayCache implements Cache
 {

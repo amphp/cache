@@ -6,8 +6,6 @@ use Amp\Promise;
 use Amp\Serialization\SerializationException;
 use Amp\Sync\KeyedMutex;
 use Amp\Sync\Lock;
-use function Amp\await;
-use function Amp\call;
 
 /**
  * @template TValue
@@ -114,7 +112,8 @@ final class AtomicCache
      *
      * @return mixed
      *
-     * @psalm-param callable(string, TValue|null): (TValue|Promise<TValue>|\Generator<mixed, mixed, mixed, TValue>) $create
+     * @psalm-param callable(string, TValue|null): (TValue|Promise<TValue>|\Generator<mixed, mixed, mixed, TValue>)
+     *     $create
      * @psalm-return Promise<TValue>
      *
      * @throws CacheException If the $create callback throws an exception while generating the value.
@@ -147,9 +146,9 @@ final class AtomicCache
     /**
      * The lock is obtained for the key before setting the value.
      *
-     * @param string   $key Cache key.
-     * @param mixed    $value Value to cache.
-     * @param int|null $ttl Timeout in seconds. The default `null` $ttl value indicates no timeout.
+     * @param string       $key Cache key.
+     * @param mixed        $value Value to cache.
+     * @param int|null     $ttl Timeout in seconds. The default `null` $ttl value indicates no timeout.
      *
      * @return Promise<void> Resolves either successfully or fails with a CacheException on failure.
      *
@@ -177,8 +176,8 @@ final class AtomicCache
      *
      * @template TDefault
      *
-     * @param string $key Cache key.
-     * @param mixed  $default Default value returned if the key does not exist. Null by default.
+     * @param string         $key Cache key.
+     * @param mixed          $default Default value returned if the key does not exist. Null by default.
      *
      * @return mixed Resolved with null iff $default is null.
      *
@@ -240,7 +239,7 @@ final class AtomicCache
     private function create(callable $create, string $key, mixed $value, ?int $ttl): mixed
     {
         try {
-            $value = await(call($create, $key, $value));
+            $value = $create($key, $value);
         } catch (\Throwable $exception) {
             throw new CacheException(
                 \sprintf('Exception thrown while creating the value for key "%s"', $key),

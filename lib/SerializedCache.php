@@ -27,7 +27,7 @@ final class SerializedCache
      * @return mixed Returns the cached value or `null` if it doesn't exist. Throws a CacheException or
      * SerializationException on failure.
      *
-     * @psalm-return Promise<TValue|null>
+     * @psalm-return TValue
      *
      * @see Cache::get()
      */
@@ -44,10 +44,10 @@ final class SerializedCache
     /**
      * Serializes a value and stores its serialization to the cache.
      *
-     * @param string $key Cache key.
-     * @param mixed $value Value to cache.
-     * @param int|null $ttl Timeout in seconds. The default `null` $ttl value indicates no timeout. Values less than 0 MUST
-     *               throw an \Error.
+     * @param string       $key Cache key.
+     * @param mixed        $value Value to cache.
+     * @param int|null     $ttl Timeout in seconds. The default `null` $ttl value indicates no timeout. Values less
+     *     than 0 MUST throw an \Error.
      *
      * @psalm-param TValue $value
      *
@@ -60,7 +60,6 @@ final class SerializedCache
         }
 
         $value = $this->serializer->serialize($value);
-
 
         $this->cache->set($key, $value, $ttl);
     }

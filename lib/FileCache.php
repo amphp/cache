@@ -4,9 +4,10 @@ namespace Amp\Cache;
 
 use Amp\File;
 use Amp\File\Driver;
-use Amp\Loop;
 use Amp\Sync\KeyedMutex;
-use function Amp\asyncCallable;
+use Revolt\EventLoop\Loop;
+use function Amp\async;
+use function Revolt\EventLoop\defer;
 
 final class FileCache implements Cache
 {
@@ -30,7 +31,7 @@ final class FileCache implements Cache
             throw new \Error(__CLASS__ . ' requires amphp/file to be installed');
         }
 
-        $gcWatcher = asyncCallable(static function () use ($directory, $mutex): void {
+        $gcWatcher = static function () use ($directory, $mutex): void {
             try {
                 $files = File\listFiles($directory);
 
@@ -67,12 +68,12 @@ final class FileCache implements Cache
             } catch (\Throwable $e) {
                 // ignore
             }
-        });
+        };
 
         // trigger once, so short running scripts also GC and don't grow forever
-        Loop::defer($gcWatcher);
+        Loop::defer(static fn () => defer($gcWatcher));
 
-        $this->gcWatcher = Loop::repeat(300000, $gcWatcher);
+        $this->gcWatcher = Loop::repeat(300000, static fn () => defer($gcWatcher));
     }
 
     public function __destruct()
@@ -83,7 +84,7 @@ final class FileCache implements Cache
     /** @inheritdoc */
     public function get(string $key): ?string
     {
-        $filename = $this->getFilename($key);
+        $filename = self::getFilename($key);
 
         $lock = $this->mutex->acquire($filename);
 
@@ -119,7 +120,7 @@ final class FileCache implements Cache
             throw new \Error("Invalid cache TTL ({$ttl}); integer >= 0 or null required");
         }
 
-        $filename = $this->getFilename($key);
+        $filename = self::getFilename($key);
 
         $lock = $this->mutex->acquire($filename);
 
@@ -141,7 +142,7 @@ final class FileCache implements Cache
     /** @inheritdoc */
     public function delete(string $key): ?bool
     {
-        $filename = $this->getFilename($key);
+        $filename = self::getFilename($key);
 
         $lock = $this->mutex->acquire($filename);
 
