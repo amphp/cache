@@ -29,7 +29,7 @@ interface Cache
      * @param $ttl int Timeout in seconds. The default `null` $ttl value indicates no timeout. Values less than 0 MUST
      * throw an \Error.
      *
-     * @return Promise<null> Resolves either successfully or fails with a CacheException on failure.
+     * @return Promise<void> Resolves either successfully or fails with a CacheException on failure.
      */
     public function set(string $key, string $value, int $ttl = null): Promise;
 

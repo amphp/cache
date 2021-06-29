@@ -110,6 +110,7 @@ final class ArrayCache implements Cache
 
         $this->sharedState->cache[$key] = $value;
 
+        /** @var Promise<void> */
         return new Success;
     }
 

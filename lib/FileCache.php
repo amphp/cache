@@ -1,4 +1,4 @@
-<?php
+<?php /** @noinspection PhpUndefinedFunctionInspection */
 
 namespace Amp\Cache;
 
@@ -39,6 +39,7 @@ final class FileCache implements Cache
 
         $gcWatcher = static function () use ($directory, $mutex, $ampFileVersion2): \Generator {
             try {
+                /** @psalm-suppress UndefinedFunction */
                 $files = yield $ampFileVersion2
                     ? File\listFiles($directory)
                     : File\scandir($directory);
@@ -53,6 +54,7 @@ final class FileCache implements Cache
 
                     try {
                         /** @var File\File $handle */
+                        /** @psalm-suppress UndefinedFunction */
                         $handle = yield $ampFileVersion2
                             ? File\openFile($directory . '/' . $file, 'r')
                             : File\open($directory . '/' . $file, 'r');
@@ -65,6 +67,7 @@ final class FileCache implements Cache
 
                         $ttl = \unpack('Nttl', $ttl)['ttl'];
                         if ($ttl < \time()) {
+                            /** @psalm-suppress UndefinedFunction */
                             yield $ampFileVersion2
                                 ? File\deleteFile($directory . '/' . $file)
                                 : File\unlink($directory . '/' . $file);
@@ -103,6 +106,7 @@ final class FileCache implements Cache
             $lock = yield $this->mutex->acquire($filename);
 
             try {
+                /** @psalm-suppress UndefinedFunction */
                 $cacheContent = yield $this->ampFileVersion2
                     ? File\read($this->directory . '/' . $filename)
                     : File\get($this->directory . '/' . $filename);
@@ -113,6 +117,7 @@ final class FileCache implements Cache
 
                 $ttl = \unpack('Nttl', \substr($cacheContent, 0, 4))['ttl'];
                 if ($ttl < \time()) {
+                    /** @psalm-suppress UndefinedFunction */
                     yield $this->ampFileVersion2
                         ? File\deleteFile($this->directory . '/' . $filename)
                         : File\unlink($this->directory . '/' . $filename);
@@ -155,6 +160,7 @@ final class FileCache implements Cache
             $encodedTtl = \pack('N', $ttl);
 
             try {
+                /** @psalm-suppress UndefinedFunction */
                 yield $this->ampFileVersion2
                     ? File\write($this->directory . '/' . $filename, $encodedTtl . $value)
                     : File\put($this->directory . '/' . $filename, $encodedTtl . $value);
@@ -174,6 +180,7 @@ final class FileCache implements Cache
             $lock = yield $this->mutex->acquire($filename);
 
             try {
+                /** @psalm-suppress UndefinedFunction */
                 return yield $this->ampFileVersion2
                     ? File\deleteFile($this->directory . '/' . $filename)
                     : File\unlink($this->directory . '/' . $filename);

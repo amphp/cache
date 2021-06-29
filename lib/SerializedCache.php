@@ -59,7 +59,7 @@ final class SerializedCache
      *
      * @psalm-param TValue $value
      *
-     * @return Promise<null> Resolves either successfully or fails with a CacheException or SerializationException.
+     * @return Promise<void> Resolves either successfully or fails with a CacheException or SerializationException.
      *
      * @see Cache::set()
      */

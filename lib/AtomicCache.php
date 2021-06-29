@@ -163,7 +163,7 @@ final class AtomicCache
      * @return Promise<void> Resolves either successfully or fails with a CacheException on failure.
      *
      * @psalm-param TValue $value
-     * @psalm-return Promise<null>
+     * @psalm-return Promise<void>
      *
      * @throws CacheException
      * @throws SerializationException
