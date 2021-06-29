@@ -27,7 +27,7 @@
         "amphp/phpunit-util": "^1.1",
         "phpunit/phpunit": "^6 | ^7 | ^8 | ^9",
         "amphp/php-cs-fixer-config": "dev-master",
-        "amphp/file": "^1",
+        "amphp/file": "^2",
         "vimeo/psalm": "^3.11@dev"
     },
     "autoload": {
@@ -39,8 +39,5 @@
         "psr-4": {
             "Amp\\Cache\\Test\\": "test"
         }
-    },
-    "conflict": {
-        "amphp/file": "<0.2 || >=2"
     }
 }

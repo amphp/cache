@@ -35,7 +35,7 @@ final class FileCache implements Cache
 
         $gcWatcher = static function () use ($directory, $mutex): \Generator {
             try {
-                $files = yield File\scandir($directory);
+                $files = yield File\listFiles($directory);
 
                 foreach ($files as $file) {
                     if (\strlen($file) !== 70 || \substr($file, -\strlen('.cache')) !== '.cache') {
@@ -47,7 +47,7 @@ final class FileCache implements Cache
 
                     try {
                         /** @var File\File $handle */
-                        $handle = yield File\open($directory . '/' . $file, 'r');
+                        $handle = yield File\openFile($directory . '/' . $file, 'r');
                         $ttl = yield $handle->read(4);
 
                         if ($ttl === null || \strlen($ttl) !== 4) {
@@ -57,7 +57,7 @@ final class FileCache implements Cache
 
                         $ttl = \unpack('Nttl', $ttl)['ttl'];
                         if ($ttl < \time()) {
-                            yield File\unlink($directory . '/' . $file);
+                            yield File\deleteFile($directory . '/' . $file);
                         }
                     } catch (\Throwable $e) {
                         // ignore
@@ -93,7 +93,7 @@ final class FileCache implements Cache
             $lock = yield $this->mutex->acquire($filename);
 
             try {
-                $cacheContent = yield File\get($this->directory . '/' . $filename);
+                    $cacheContent = yield File\read($this->directory . '/' . $filename);
 
                 if (\strlen($cacheContent) < 4) {
                     return null;
@@ -101,7 +101,7 @@ final class FileCache implements Cache
 
                 $ttl = \unpack('Nttl', \substr($cacheContent, 0, 4))['ttl'];
                 if ($ttl < \time()) {
-                    yield File\unlink($this->directory . '/' . $filename);
+                    yield File\deleteFile($this->directory . '/' . $filename);
 
                     return null;
                 }
@@ -141,7 +141,7 @@ final class FileCache implements Cache
             $encodedTtl = \pack('N', $ttl);
 
             try {
-                yield File\put($this->directory . '/' . $filename, $encodedTtl . $value);
+                yield File\write($this->directory . '/' . $filename, $encodedTtl . $value);
             } finally {
                 $lock->release();
             }
@@ -158,7 +158,7 @@ final class FileCache implements Cache
             $lock = yield $this->mutex->acquire($filename);
 
             try {
-                return yield File\unlink($this->directory . '/' . $filename);
+                return yield File\deleteFile($this->directory . '/' . $filename);
             } finally {
                 $lock->release();
             }
