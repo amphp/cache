@@ -93,7 +93,7 @@ final class FileCache implements Cache
             $lock = yield $this->mutex->acquire($filename);
 
             try {
-                    $cacheContent = yield File\read($this->directory . '/' . $filename);
+                $cacheContent = yield File\read($this->directory . '/' . $filename);
 
                 if (\strlen($cacheContent) < 4) {
                     return null;
