@@ -28,7 +28,7 @@
         "phpunit/phpunit": "^6 | ^7 | ^8 | ^9",
         "amphp/php-cs-fixer-config": "dev-master",
         "amphp/file": "^1 || ^2",
-        "vimeo/psalm": "^3.11@dev"
+        "vimeo/psalm": "^4"
     },
     "autoload": {
         "psr-4": {
