@@ -73,6 +73,8 @@ final class FileCache implements Cache
         Loop::defer($gcWatcher);
 
         $this->gcWatcher = Loop::repeat(300000, $gcWatcher);
+
+        Loop::unreference($this->gcWatcher);
     }
 
     public function __destruct()
