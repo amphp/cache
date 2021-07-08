@@ -10,28 +10,8 @@ jobs:
       matrix:
         include:
           - operating-system: 'ubuntu-latest'
-            php-version: '7.1'
-
-          - operating-system: 'ubuntu-latest'
-            php-version: '7.2'
-
-          - operating-system: 'ubuntu-latest'
-            php-version: '7.3'
-
-          - operating-system: 'ubuntu-latest'
-            php-version: '7.4'
-
-          - operating-system: 'ubuntu-latest'
             php-version: '8.0'
             composer-flags: '--ignore-platform-req=php'
-
-          - operating-system: 'windows-latest'
-            php-version: '7.4'
-            job-description: 'on Windows'
-
-          - operating-system: 'macos-latest'
-            php-version: '7.4'
-            job-description: 'on macOS'
 
     name: PHP ${{ matrix.php-version }} ${{ matrix.job-description }}
 
@@ -50,6 +30,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php-version }}
+          extensions: fiber-amphp/ext-fiber@master
 
       - name: Get Composer cache directory
         id: composer-cache
