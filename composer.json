@@ -31,7 +31,7 @@
         "amphp/phpunit-util": "^2-dev",
         "phpunit/phpunit": "^9",
         "amphp/php-cs-fixer-config": "dev-master",
-        "amphp/file": "^2-dev",
+        "amphp/file": "^3-dev",
         "psalm/phar": "^4"
     },
     "minimum-stability": "dev",
@@ -47,6 +47,6 @@
         }
     },
     "conflict": {
-        "amphp/file": "<0.2 || >=2"
+        "amphp/file": "<3-dev || >=4"
     }
 }
