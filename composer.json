@@ -32,7 +32,7 @@
         "phpunit/phpunit": "^9",
         "amphp/php-cs-fixer-config": "dev-master",
         "amphp/file": "^2-dev",
-        "psalm/phar": "^3.11@dev"
+        "psalm/phar": "^4"
     },
     "minimum-stability": "dev",
     "prefer-stable": true,
@@ -45,5 +45,8 @@
         "psr-4": {
             "Amp\\Cache\\Test\\": "test"
         }
+    },
+    "conflict": {
+        "amphp/file": "<0.2 || >=2"
     }
 }
