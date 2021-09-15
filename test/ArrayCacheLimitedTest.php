@@ -20,6 +20,6 @@ class ArrayCacheLimitedTest extends CacheTest
 
     protected function createCache(): Cache
     {
-        return new ArrayCache(5000, 5);
+        return new ArrayCache(5, 5);
     }
 }

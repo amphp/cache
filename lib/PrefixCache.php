@@ -2,6 +2,10 @@
 
 namespace Amp\Cache;
 
+/**
+ * @template TValue
+ * @template-implements Cache<TValue>
+ */
 final class PrefixCache implements Cache
 {
     private Cache $cache;

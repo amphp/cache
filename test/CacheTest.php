@@ -26,7 +26,7 @@ abstract class CacheTest extends AsyncTestCase
         $cache = $this->createCache();
 
         $cache->set("foo", "bar", 0);
-        delay(1000);
+        delay(1);
 
         self::assertNull($cache->get("foo"));
     }
@@ -37,7 +37,7 @@ abstract class CacheTest extends AsyncTestCase
 
         $cache->set("foo", "bar", 0);
         $cache->set("foo", "bar");
-        delay(1000);
+        delay(1);
 
         self::assertNotNull($cache->get("foo"));
     }

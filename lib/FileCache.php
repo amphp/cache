@@ -6,7 +6,6 @@ use Amp\File;
 use Amp\File\Driver;
 use Amp\Sync\KeyedMutex;
 use Revolt\EventLoop\Loop;
-use function Amp\async;
 use function Revolt\EventLoop\defer;
 
 final class FileCache implements Cache
@@ -22,18 +21,23 @@ final class FileCache implements Cache
 
     private string $gcWatcher;
 
-    public function __construct(string $directory, KeyedMutex $mutex)
+    private File\Filesystem $filesystem;
+
+    public function __construct(string $directory, KeyedMutex $mutex, ?File\Filesystem $filesystem = null)
     {
+        $filesystem ??= File\filesystem();
+
         $this->directory = $directory = \rtrim($directory, "/\\");
         $this->mutex = $mutex;
+        $this->filesystem = $filesystem;
 
         if (!\interface_exists(Driver::class)) {
             throw new \Error(__CLASS__ . ' requires amphp/file to be installed');
         }
 
-        $gcWatcher = static function () use ($directory, $mutex): void {
+        $gcWatcher = static function () use ($directory, $mutex, $filesystem): void {
             try {
-                $files = File\listFiles($directory);
+                $files = $filesystem->listFiles($directory);
 
                 foreach ($files as $file) {
                     if (\strlen($file) !== 70 || \substr($file, -\strlen('.cache')) !== '.cache') {
@@ -43,7 +47,7 @@ final class FileCache implements Cache
                     $lock = $mutex->acquire($file);
 
                     try {
-                        $handle = File\openFile($directory . '/' . $file, 'r');
+                        $handle = $filesystem->openFile($directory . '/' . $file, 'r');
 
                         try {
                             $ttl = $handle->read(4);
@@ -57,7 +61,7 @@ final class FileCache implements Cache
 
                         $ttl = \unpack('Nttl', $ttl)['ttl'];
                         if ($ttl < \time()) {
-                            File\deleteFile($directory . '/' . $file);
+                            $this->filesystem->deleteFile($directory . '/' . $file);
                         }
                     } catch (\Throwable $e) {
                         // ignore
@@ -73,7 +77,7 @@ final class FileCache implements Cache
         // trigger once, so short running scripts also GC and don't grow forever
         Loop::defer(static fn () => defer($gcWatcher));
 
-        $this->gcWatcher = Loop::repeat(300000, static fn () => defer($gcWatcher));
+        $this->gcWatcher = Loop::repeat(300, static fn () => defer($gcWatcher));
     }
 
     public function __destruct()
@@ -89,7 +93,7 @@ final class FileCache implements Cache
         $lock = $this->mutex->acquire($filename);
 
         try {
-            $cacheContent = File\read($this->directory . '/' . $filename);
+            $cacheContent = $this->filesystem->read($this->directory . '/' . $filename);
 
             if (\strlen($cacheContent) < 4) {
                 return null;
@@ -97,7 +101,7 @@ final class FileCache implements Cache
 
             $ttl = \unpack('Nttl', \substr($cacheContent, 0, 4))['ttl'];
             if ($ttl < \time()) {
-                File\deleteFile($this->directory . '/' . $filename);
+                $this->filesystem->deleteFile($this->directory . '/' . $filename);
                 return null;
             }
 
@@ -133,7 +137,7 @@ final class FileCache implements Cache
         $encodedTtl = \pack('N', $ttl);
 
         try {
-            File\write($this->directory . '/' . $filename, $encodedTtl . $value);
+            $this->filesystem->write($this->directory . '/' . $filename, $encodedTtl . $value);
         } finally {
             $lock->release();
         }
@@ -147,7 +151,7 @@ final class FileCache implements Cache
         $lock = $this->mutex->acquire($filename);
 
         try {
-            File\deleteFile($this->directory . '/' . $filename);
+            $this->filesystem->deleteFile($this->directory . '/' . $filename);
         } finally {
             $lock->release();
         }
