@@ -161,7 +161,7 @@ class AtomicCacheTest extends AsyncTestCase
     public function testSimultaneousCompute(): void
     {
         $this->setMinimumRuntime(1000);
-        $this->setTimeout(1100);
+        $this->setTimeout(1300);
 
         $internalCache = new SerializedCache(new ArrayCache, new NativeSerializer);
         $atomicCache = new AtomicCache($internalCache, new LocalKeyedMutex);
