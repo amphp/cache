@@ -34,12 +34,6 @@
         "amphp/file": "dev-v3-revolt as 3",
         "psalm/phar": "^4"
     },
-    "repositories": [
-        {
-            "type": "vcs",
-            "url": "git@github.com:revolt-php/event-loop.git"
-        }
-    ],
     "minimum-stability": "dev",
     "prefer-stable": true,
     "autoload": {

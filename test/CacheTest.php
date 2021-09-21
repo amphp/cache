@@ -4,7 +4,7 @@ namespace Amp\Cache\Test;
 
 use Amp\Cache\Cache;
 use Amp\PHPUnit\AsyncTestCase;
-use function Revolt\EventLoop\delay;
+use function Amp\delay;
 
 abstract class CacheTest extends AsyncTestCase
 {

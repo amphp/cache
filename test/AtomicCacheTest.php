@@ -11,8 +11,8 @@ use Amp\Serialization\NativeSerializer;
 use Amp\Serialization\PassthroughSerializer;
 use Amp\Sync\KeyedMutex;
 use Amp\Sync\LocalKeyedMutex;
-use function Amp\Future\spawn;
-use function Revolt\EventLoop\delay;
+use function Amp\coroutine;
+use function Amp\delay;
 
 class AtomicCacheTest extends AsyncTestCase
 {
@@ -125,12 +125,12 @@ class AtomicCacheTest extends AsyncTestCase
             return 'value';
         };
 
-        $setPromise = spawn(fn () => $atomicCache->computeIfAbsent('key', $callback));
+        $setPromise = coroutine(fn () => $atomicCache->computeIfAbsent('key', $callback));
 
-        $getPromise = spawn(fn () => $atomicCache->computeIfAbsent('key', $this->createCallback(0)));
+        $getPromise = coroutine(fn () => $atomicCache->computeIfAbsent('key', $this->createCallback(0)));
 
-        self::assertSame('value', $setPromise->join());
-        self::assertSame('value', $getPromise->join());
+        self::assertSame('value', $setPromise->await());
+        self::assertSame('value', $getPromise->await());
         self::assertSame('value', $internalCache->get('key'));
     }
 
@@ -148,12 +148,12 @@ class AtomicCacheTest extends AsyncTestCase
             return 'value';
         };
 
-        $setPromise = spawn(fn () => $atomicCache->compute('key', $callback));
+        $setPromise = coroutine(fn () => $atomicCache->compute('key', $callback));
 
-        $getPromise = spawn(fn () => $atomicCache->computeIfAbsent('key', $this->createCallback(0)));
+        $getPromise = coroutine(fn () => $atomicCache->computeIfAbsent('key', $this->createCallback(0)));
 
-        self::assertSame('value', $setPromise->join());
-        self::assertSame('value', $getPromise->join());
+        self::assertSame('value', $setPromise->await());
+        self::assertSame('value', $getPromise->await());
         self::assertSame('value', $internalCache->get('key'));
     }
 
@@ -174,12 +174,12 @@ class AtomicCacheTest extends AsyncTestCase
             return $value + 1;
         };
 
-        $promise1 = spawn(fn () => $atomicCache->compute('key', $callback));
+        $promise1 = coroutine(fn () => $atomicCache->compute('key', $callback));
 
-        $promise2 = spawn(fn () => $atomicCache->compute('key', $callback));
+        $promise2 = coroutine(fn () => $atomicCache->compute('key', $callback));
 
-        self::assertSame(1, $promise1->join());
-        self::assertSame(2, $promise2->join());
+        self::assertSame(1, $promise1->await());
+        self::assertSame(2, $promise2->await());
     }
 
     public function testComputeCallbackReturningNull(): void
@@ -275,13 +275,13 @@ class AtomicCacheTest extends AsyncTestCase
 
         $atomicCache->set('key', 'value');
 
-        $computePromise = spawn(fn () => $atomicCache->computeIfPresent('key', function (): string {
+        $computePromise = coroutine(fn () => $atomicCache->computeIfPresent('key', function (): string {
             return 'new-value';
         }));
 
-        $deletePromise = spawn(fn () => $atomicCache->delete('key'));
+        $deletePromise = coroutine(fn () => $atomicCache->delete('key'));
 
-        self::assertSame('new-value', $computePromise->join());
-        self::assertTrue($deletePromise->join());
+        self::assertSame('new-value', $computePromise->await());
+        self::assertTrue($deletePromise->await());
     }
 }
