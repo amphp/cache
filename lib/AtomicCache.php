@@ -2,12 +2,9 @@
 
 namespace Amp\Cache;
 
-use Amp\Promise;
 use Amp\Serialization\SerializationException;
 use Amp\Sync\KeyedMutex;
 use Amp\Sync\Lock;
-use function Amp\await;
-use function Amp\call;
 
 /**
  * @template TValue
@@ -21,7 +18,7 @@ final class AtomicCache
 
     /**
      * @param SerializedCache<TValue> $cache
-     * @param KeyedMutex              $mutex
+     * @param KeyedMutex $mutex
      */
     public function __construct(SerializedCache $cache, KeyedMutex $mutex)
     {
@@ -34,15 +31,11 @@ final class AtomicCache
      * be null if the key did not exist in the cache). The value returned from the callback is stored in the cache and
      * the promise returned from this method is resolved with the value.
      *
-     * @param string   $key
-     * @param callable(string, mixed|null): mixed $create Receives $key and $value as parameters.
+     * @param string $key
+     * @param callable(string, TValue|null): mixed $create Receives $key and $value as parameters.
      * @param int|null $ttl Timeout in seconds. The default `null` $ttl value indicates no timeout.
      *
      * @return mixed
-     *
-     * @psalm-param callable(string, TValue|null):(TValue|Promise<TValue>|\Generator<mixed, mixed, mixed, TValue>)
-     *     $create
-     * @psalm-return Promise<TValue>
      *
      * @throws CacheException If the $create callback throws an exception while generating the value.
      * @throws SerializationException If serializing the value returned from the callback fails.
@@ -65,15 +58,11 @@ final class AtomicCache
      * is invoked with the key as the first parameter. The value returned from the callback is stored in the cache and
      * the promise returned from this method is resolved with the value.
      *
-     * @param string   $key Cache key.
-     * @param callable(string): mixed $create Receives $key as parameter.
+     * @param string $key Cache key.
+     * @param callable(string, null):TValue $create Receives $key as parameter.
      * @param int|null $ttl Timeout in seconds. The default `null` $ttl value indicates no timeout.
      *
      * @return mixed
-     *
-     * @psalm-param callable(string, TValue|null):(TValue|Promise<TValue>|\Generator<mixed, mixed, mixed, TValue>)
-     *     $create
-     * @psalm-return Promise<TValue>
      *
      * @throws CacheException If the $create callback throws an exception while generating the value.
      * @throws SerializationException If serializing the value returned from the callback fails.
@@ -108,14 +97,14 @@ final class AtomicCache
      * returned from the callback is stored in the cache and the promise returned from this method is resolved with
      * the value.
      *
-     * @param string   $key Cache key.
-     * @param callable(string, mixed): mixed $create Receives $key and $value as parameters.
+     * @param string $key Cache key.
+     * @param callable(string, TValue):TValue $create Receives $key and $value as parameters.
      * @param int|null $ttl Timeout in seconds. The default `null` $ttl value indicates no timeout.
      *
-     * @return mixed
+     * @return TValue
      *
-     * @psalm-param callable(string, TValue|null): (TValue|Promise<TValue>|\Generator<mixed, mixed, mixed, TValue>) $create
-     * @psalm-return Promise<TValue>
+     * @psalm-param callable(string, TValue|null): (TValue|Promise<TValue>|\Generator<mixed, mixed, mixed, TValue>)
+     *     $create
      *
      * @throws CacheException If the $create callback throws an exception while generating the value.
      * @throws SerializationException If serializing the value returned from the callback fails.
@@ -147,14 +136,9 @@ final class AtomicCache
     /**
      * The lock is obtained for the key before setting the value.
      *
-     * @param string   $key Cache key.
-     * @param mixed    $value Value to cache.
+     * @param string $key Cache key.
+     * @param TValue $value Value to cache.
      * @param int|null $ttl Timeout in seconds. The default `null` $ttl value indicates no timeout.
-     *
-     * @return Promise<void> Resolves either successfully or fails with a CacheException on failure.
-     *
-     * @psalm-param TValue $value
-     * @psalm-return Promise<void>
      *
      * @throws CacheException
      * @throws SerializationException
@@ -175,15 +159,10 @@ final class AtomicCache
     /**
      * Returns the cached value for the key or the given default value if the key does not exist.
      *
-     * @template TDefault
-     *
      * @param string $key Cache key.
-     * @param mixed  $default Default value returned if the key does not exist. Null by default.
+     * @param TValue $default Default value returned if the key does not exist. Null by default.
      *
      * @return mixed Resolved with null iff $default is null.
-     *
-     * @psalm-param TDefault $default
-     * @psalm-return Promise<TValue|TDefault>
      *
      * @throws CacheException
      * @throws SerializationException
@@ -240,7 +219,7 @@ final class AtomicCache
     private function create(callable $create, string $key, mixed $value, ?int $ttl): mixed
     {
         try {
-            $value = await(call($create, $key, $value));
+            $value = $create($key, $value);
         } catch (\Throwable $exception) {
             throw new CacheException(
                 \sprintf('Exception thrown while creating the value for key "%s"', $key),

@@ -7,12 +7,7 @@ use Amp\Cache\Cache;
 
 class ArrayCacheLimitedTest extends CacheTest
 {
-    protected function createCache(): Cache
-    {
-        return new ArrayCache(5000, 5);
-    }
-
-    public function testEntryIsNotReturnedAfterCacheLimitReached()
+    public function testEntryIsNotReturnedAfterCacheLimitReached(): void
     {
         $cache = $this->createCache();
 
@@ -20,6 +15,11 @@ class ArrayCacheLimitedTest extends CacheTest
             $cache->set("foo_$i", $i, 0);
         }
 
-        $this->assertNull($cache->get("foo_1"));
+        self::assertNull($cache->get("foo_1"));
+    }
+
+    protected function createCache(): Cache
+    {
+        return new ArrayCache(5, 5);
     }
 }

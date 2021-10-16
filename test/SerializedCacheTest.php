@@ -33,11 +33,11 @@ class SerializedCacheTest extends AsyncTestCase
 
         $mock = $this->createMock(Cache::class);
 
-        $mock->expects($this->once())
+        $mock->expects(self::once())
             ->method('set')
             ->with($key, $serializedValue);
 
-        $mock->expects($this->once())
+        $mock->expects(self::once())
             ->method('get')
             ->with('key')
             ->willReturn($serializedValue);
@@ -46,7 +46,7 @@ class SerializedCacheTest extends AsyncTestCase
 
         $cache->set('key', $value);
 
-        $this->assertEquals($value, $cache->get('key'));
+        self::assertEquals($value, $cache->get('key'));
     }
 
     public function testSerializerThrowingOnGet()
@@ -58,7 +58,7 @@ class SerializedCacheTest extends AsyncTestCase
             ->willThrowException(new SerializationException);
 
         $mock = $this->createMock(Cache::class);
-        $mock->expects($this->once())
+        $mock->expects(self::once())
             ->method('get')
             ->with('key')
             ->willReturn('value');

@@ -2,8 +2,7 @@
 
 namespace Amp\Cache;
 
-use Amp\Loop;
-use Amp\Struct;
+use Revolt\EventLoop;
 
 final class ArrayCache implements Cache
 {
@@ -14,17 +13,15 @@ final class ArrayCache implements Cache
     private ?int $maxSize;
 
     /**
-     * @param int $gcInterval The frequency in milliseconds at which expired cache entries should be garbage collected.
+     * @param float $gcInterval The frequency in seconds at which expired cache entries should be garbage collected.
      * @param int|null $maxSize The maximum size of cache array (number of elements). NULL for no max size.
      */
-    public function __construct(int $gcInterval = 5000, int $maxSize = null)
+    public function __construct(float $gcInterval = 5, int $maxSize = null)
     {
         // By using a shared state object we're able to use `__destruct()` for "normal" garbage collection of both this
         // instance and the loop's watcher. Otherwise this object could only be GC'd when the TTL watcher was cancelled
         // at the loop layer.
         $this->sharedState = $sharedState = new class {
-            use Struct;
-
             /** @var string[] */
             public array $cache = [];
             /** @var int[] */
@@ -54,10 +51,10 @@ final class ArrayCache implements Cache
             }
         };
 
-        $this->ttlWatcherId = Loop::repeat($gcInterval, [$sharedState, "collectGarbage"]);
+        $this->ttlWatcherId = EventLoop::repeat($gcInterval, [$sharedState, "collectGarbage"]);
         $this->maxSize = $maxSize;
 
-        Loop::unreference($this->ttlWatcherId);
+        EventLoop::unreference($this->ttlWatcherId);
     }
 
     public function __destruct()
@@ -65,7 +62,7 @@ final class ArrayCache implements Cache
         $this->sharedState->cache = [];
         $this->sharedState->cacheTimeouts = [];
 
-        Loop::cancel($this->ttlWatcherId);
+        EventLoop::cancel($this->ttlWatcherId);
     }
 
     /** @inheritdoc */

@@ -23,15 +23,15 @@
     ],
     "require": {
         "php": ">=8",
-        "amphp/amp": "^3-dev",
+        "amphp/amp": "v3.x-dev",
         "amphp/serialization": "^1",
-        "amphp/sync": "^2-dev"
+        "amphp/sync": "v2.x-dev"
     },
     "require-dev": {
-        "amphp/phpunit-util": "^2-dev",
+        "amphp/phpunit-util": "v2.x-dev",
         "phpunit/phpunit": "^9",
         "amphp/php-cs-fixer-config": "dev-master",
-        "amphp/file": "^3-dev",
+        "amphp/file": "v3.x-dev",
         "psalm/phar": "^4"
     },
     "minimum-stability": "dev",
