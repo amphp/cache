@@ -5,8 +5,7 @@ namespace Amp\Cache;
 use Amp\File;
 use Amp\File\Driver;
 use Amp\Sync\KeyedMutex;
-use Revolt\EventLoop\Loop;
-use function Revolt\EventLoop\queue;
+use Revolt\EventLoop;
 
 final class FileCache implements Cache
 {
@@ -75,14 +74,14 @@ final class FileCache implements Cache
         };
 
         // trigger once, so short running scripts also GC and don't grow forever
-        Loop::defer(static fn () => queue($gcWatcher));
+        EventLoop::defer($gcWatcher);
 
-        $this->gcWatcher = Loop::repeat(300, static fn () => queue($gcWatcher));
+        $this->gcWatcher = EventLoop::repeat(300, $gcWatcher);
     }
 
     public function __destruct()
     {
-        Loop::cancel($this->gcWatcher);
+        EventLoop::cancel($this->gcWatcher);
     }
 
     /** @inheritdoc */

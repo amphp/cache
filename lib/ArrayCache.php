@@ -2,7 +2,7 @@
 
 namespace Amp\Cache;
 
-use Revolt\EventLoop\Loop;
+use Revolt\EventLoop;
 
 final class ArrayCache implements Cache
 {
@@ -51,10 +51,10 @@ final class ArrayCache implements Cache
             }
         };
 
-        $this->ttlWatcherId = Loop::repeat($gcInterval, [$sharedState, "collectGarbage"]);
+        $this->ttlWatcherId = EventLoop::repeat($gcInterval, [$sharedState, "collectGarbage"]);
         $this->maxSize = $maxSize;
 
-        Loop::unreference($this->ttlWatcherId);
+        EventLoop::unreference($this->ttlWatcherId);
     }
 
     public function __destruct()
@@ -62,7 +62,7 @@ final class ArrayCache implements Cache
         $this->sharedState->cache = [];
         $this->sharedState->cacheTimeouts = [];
 
-        Loop::cancel($this->ttlWatcherId);
+        EventLoop::cancel($this->ttlWatcherId);
     }
 
     /** @inheritdoc */
