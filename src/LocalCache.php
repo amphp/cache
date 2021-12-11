@@ -22,7 +22,7 @@ final class LocalCache implements Cache
         // instance and the event loop callback. Otherwise, this object could only be collected when the garbage
         // collection callback was cancelled at the event loop layer.
         $this->state = $state = new class {
-            /** @var string[] */
+            /** @var array */
             public array $cache = [];
             /** @var int[] */
             public array $cacheTimeouts = [];
@@ -65,7 +65,7 @@ final class LocalCache implements Cache
         EventLoop::cancel($this->gcCallbackId);
     }
 
-    public function get(string $key): ?string
+    public function get(string $key): mixed
     {
         if (!isset($this->state->cache[$key])) {
             return null;
@@ -83,8 +83,12 @@ final class LocalCache implements Cache
         return $this->state->cache[$key];
     }
 
-    public function set(string $key, string $value, int $ttl = null): void
+    public function set(string $key, mixed $value, int $ttl = null): void
     {
+        if ($value === null) {
+            throw new CacheException('Cannot store NULL in ' . self::class);
+        }
+
         if ($ttl === null) {
             unset($this->state->cacheTimeouts[$key]);
         } elseif ($ttl >= 0) {

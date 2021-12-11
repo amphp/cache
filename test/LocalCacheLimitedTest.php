@@ -2,10 +2,11 @@
 
 namespace Amp\Cache\Test;
 
-use Amp\Cache\Cache;
 use Amp\Cache\LocalCache;
+use Amp\Cache\StringCache;
+use Amp\Cache\StringCacheAdapter;
 
-class LocalCacheLimitedTest extends CacheTest
+class LocalCacheLimitedTest extends StringCacheTest
 {
     public function testEntryIsNotReturnedAfterCacheLimitReached(): void
     {
@@ -18,8 +19,8 @@ class LocalCacheLimitedTest extends CacheTest
         self::assertNull($cache->get("foo_1"));
     }
 
-    protected function createCache(): Cache
+    protected function createCache(): StringCache
     {
-        return new LocalCache(5, 5);
+        return new StringCacheAdapter(new LocalCache(5, 5));
     }
 }

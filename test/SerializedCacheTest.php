@@ -2,9 +2,9 @@
 
 namespace Amp\Cache\Test;
 
-use Amp\Cache\Cache;
 use Amp\Cache\CacheException;
 use Amp\Cache\SerializedCache;
+use Amp\Cache\StringCache;
 use Amp\PHPUnit\AsyncTestCase;
 use Amp\Serialization\NativeSerializer;
 use Amp\Serialization\SerializationException;
@@ -31,7 +31,7 @@ class SerializedCacheTest extends AsyncTestCase
         $serializer = new NativeSerializer;
         $serializedValue = $serializer->serialize($value);
 
-        $mock = $this->createMock(Cache::class);
+        $mock = $this->createMock(StringCache::class);
 
         $mock->expects(self::once())
             ->method('set')
@@ -57,7 +57,7 @@ class SerializedCacheTest extends AsyncTestCase
         $serializer->method('unserialize')
             ->willThrowException(new SerializationException);
 
-        $mock = $this->createMock(Cache::class);
+        $mock = $this->createMock(StringCache::class);
         $mock->expects(self::once())
             ->method('get')
             ->with('key')
@@ -76,7 +76,7 @@ class SerializedCacheTest extends AsyncTestCase
         $serializer->method('serialize')
             ->willThrowException(new SerializationException);
 
-        $cache = new SerializedCache($this->createMock(Cache::class), $serializer);
+        $cache = new SerializedCache($this->createMock(StringCache::class), $serializer);
 
         $cache->set('key', 'value');
     }
@@ -85,7 +85,7 @@ class SerializedCacheTest extends AsyncTestCase
     {
         $this->expectException(CacheException::class);
 
-        $cache = new SerializedCache($this->createMock(Cache::class), new NativeSerializer);
+        $cache = new SerializedCache($this->createMock(StringCache::class), new NativeSerializer);
 
         $cache->set('key', null);
     }

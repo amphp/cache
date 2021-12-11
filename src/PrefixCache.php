@@ -28,7 +28,7 @@ final class PrefixCache implements Cache
         return $this->cache->get($this->keyPrefix . $key);
     }
 
-    public function set(string $key, string $value, int $ttl = null): void
+    public function set(string $key, mixed $value, int $ttl = null): void
     {
         $this->cache->set($this->keyPrefix . $key, $value, $ttl);
     }

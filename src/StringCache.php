@@ -2,10 +2,7 @@
 
 namespace Amp\Cache;
 
-/**
- * @template TValue
- */
-interface Cache
+interface StringCache
 {
     /**
      * Gets a value associated with the given key.
@@ -14,11 +11,11 @@ interface Cache
      *
      * @param $key string Cache key.
      *
-     * @return TValue|null Returns the cached value, or {@code null} if it doesn't exist
+     * @return string|null Returns the cached value, or {@code null} if it doesn't exist
      *
      * @throws CacheException On failure to determine the cached value
      */
-    public function get(string $key): mixed;
+    public function get(string $key): ?string;
 
     /**
      * Sets a value associated with the given key. Overrides existing values (if they exist).
@@ -26,12 +23,12 @@ interface Cache
      * TTL values less than 0 MUST throw an \Error.
      *
      * @param $key string Cache key.
-     * @param $value TValue Value to cache.
+     * @param $value string Value to cache.
      * @param $ttl int Timeout in seconds >= 0. The default {@code null} $ttl value indicates no timeout.
      *
      * @throws CacheException On failure to store the cached value
      */
-    public function set(string $key, mixed $value, int $ttl = null): void;
+    public function set(string $key, string $value, int $ttl = null): void;
 
     /**
      * Deletes a value associated with the given key if it exists.
