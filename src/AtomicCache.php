@@ -11,16 +11,16 @@ use Amp\Sync\Lock;
  */
 final class AtomicCache
 {
-    /** @var SerializedCache<TValue> */
-    private SerializedCache $cache;
+    /** @var Cache<TValue> */
+    private Cache $cache;
 
     private KeyedMutex $mutex;
 
     /**
-     * @param SerializedCache<TValue> $cache
+     * @param Cache<TValue> $cache
      * @param KeyedMutex $mutex
      */
-    public function __construct(SerializedCache $cache, KeyedMutex $mutex)
+    public function __construct(Cache $cache, KeyedMutex $mutex)
     {
         $this->cache = $cache;
         $this->mutex = $mutex;

@@ -2,11 +2,11 @@
 
 namespace Amp\Cache\Test;
 
-use Amp\Cache\Cache;
+use Amp\Cache\StringCache;
 use Amp\PHPUnit\AsyncTestCase;
 use function Amp\delay;
 
-abstract class CacheTest extends AsyncTestCase
+abstract class StringCacheTest extends AsyncTestCase
 {
     public function testGet(): void
     {
@@ -52,5 +52,5 @@ abstract class CacheTest extends AsyncTestCase
         self::assertNull($cache->get("foo"));
     }
 
-    abstract protected function createCache(): Cache;
+    abstract protected function createCache(): StringCache;
 }

@@ -2,13 +2,14 @@
 
 namespace Amp\Cache\Test;
 
-use Amp\Cache\Cache;
 use Amp\Cache\LocalCache;
+use Amp\Cache\StringCache;
+use Amp\Cache\StringCacheAdapter;
 
-class LocalCacheTest extends CacheTest
+class LocalCacheTest extends StringCacheTest
 {
-    protected function createCache(): Cache
+    protected function createCache(): StringCache
     {
-        return new LocalCache;
+        return new StringCacheAdapter(new LocalCache);
     }
 }

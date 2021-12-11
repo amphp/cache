@@ -8,13 +8,13 @@ use Amp\Serialization\Serializer;
 /**
  * @template TValue
  */
-final class SerializedCache
+final class SerializedCache implements Cache
 {
-    private Cache $cache;
+    private StringCache $cache;
 
     private Serializer $serializer;
 
-    public function __construct(Cache $cache, Serializer $serializer)
+    public function __construct(StringCache $cache, Serializer $serializer)
     {
         $this->cache = $cache;
         $this->serializer = $serializer;
@@ -30,7 +30,7 @@ final class SerializedCache
      * @throws CacheException
      * @throws SerializationException
      *
-     * @see Cache::get()
+     * @see StringCache::get()
      */
     public function get(string $key): mixed
     {
@@ -53,12 +53,12 @@ final class SerializedCache
      * @throws CacheException
      * @throws SerializationException
      *
-     * @see Cache::set()
+     * @see StringCache::set()
      */
     public function set(string $key, mixed $value, ?int $ttl = null): void
     {
         if ($value === null) {
-            throw new CacheException('Cannot store NULL in serialized cache');
+            throw new CacheException('Cannot store NULL in ' . self::class);
         }
 
         $value = $this->serializer->serialize($value);
@@ -76,7 +76,7 @@ final class SerializedCache
      *
      * @throws CacheException
      *
-     * @see Cache::delete()
+     * @see StringCache::delete()
      */
     public function delete(string $key): ?bool
     {

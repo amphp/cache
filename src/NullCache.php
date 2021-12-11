@@ -12,7 +12,7 @@ final class NullCache implements Cache
         return null;
     }
 
-    public function set(string $key, string $value, int $ttl = null): void
+    public function set(string $key, mixed $value, int $ttl = null): void
     {
         // Nothing to do.
     }
