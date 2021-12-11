@@ -13,10 +13,10 @@ final class LocalCache implements Cache
     private ?int $sizeLimit;
 
     /**
-     * @param float $gcInterval The frequency in seconds at which expired cache entries should be garbage collected.
      * @param int|null $sizeLimit The maximum size of cache array (number of elements). NULL for unlimited size.
+     * @param float $gcInterval The frequency in seconds at which expired cache entries should be garbage collected.
      */
-    public function __construct(float $gcInterval = 5, int $sizeLimit = null)
+    public function __construct(int $sizeLimit = null, float $gcInterval = 5)
     {
         // By using a separate state object we're able to use `__destruct()` for garbage collection of both this
         // instance and the event loop callback. Otherwise, this object could only be collected when the garbage

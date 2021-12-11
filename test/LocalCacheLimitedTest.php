@@ -21,6 +21,6 @@ class LocalCacheLimitedTest extends StringCacheTest
 
     protected function createCache(): StringCache
     {
-        return new StringCacheAdapter(new LocalCache(5, 5));
+        return new StringCacheAdapter(new LocalCache(5));
     }
 }
