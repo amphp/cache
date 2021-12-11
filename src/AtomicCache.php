@@ -27,47 +27,47 @@ final class AtomicCache
     }
 
     /**
-     * Obtains the lock for the given key, then invokes the $create callback with the current cached value (which may
-     * be null if the key did not exist in the cache). The value returned from the callback is stored in the cache and
-     * the promise returned from this method is resolved with the value.
+     * Obtains the lock for the given key, then invokes the {@code $compute} callback with the current cached value
+     * (which may be {@code null} if the key did not exist in the cache). The value returned from the callback is stored
+     * in the cache and returned from this method.
      *
      * @param string $key
-     * @param callable(string, TValue|null): mixed $create Receives $key and $value as parameters.
-     * @param int|null $ttl Timeout in seconds. The default `null` $ttl value indicates no timeout.
+     * @param \Closure(string, TValue|null):TValue $compute Receives $key and $value as parameters.
+     * @param int|null $ttl Timeout in seconds. The default {@code null} $ttl value indicates no timeout.
      *
-     * @return mixed
+     * @return TValue
      *
      * @throws CacheException If the $create callback throws an exception while generating the value.
      * @throws SerializationException If serializing the value returned from the callback fails.
      */
-    public function compute(string $key, callable $create, ?int $ttl = null): mixed
+    public function compute(string $key, \Closure $compute, ?int $ttl = null): mixed
     {
         $lock = $this->lock($key);
 
         try {
             $value = $this->cache->get($key);
 
-            return $this->create($create, $key, $value, $ttl);
+            return $this->create($compute, $key, $value, $ttl);
         } finally {
             $lock->release();
         }
     }
 
     /**
-     * Attempts to get the value for the given key. If the key is not found, the key is locked, the $create callback
+     * Attempts to get the value for the given key. If the key is not found, the key is locked, the $compute callback
      * is invoked with the key as the first parameter. The value returned from the callback is stored in the cache and
-     * the promise returned from this method is resolved with the value.
+     * returned from this method.
      *
      * @param string $key Cache key.
-     * @param callable(string, null):TValue $create Receives $key as parameter.
+     * @param \Closure(string, null):TValue $compute Receives $key as parameter.
      * @param int|null $ttl Timeout in seconds. The default `null` $ttl value indicates no timeout.
      *
-     * @return mixed
+     * @return TValue
      *
-     * @throws CacheException If the $create callback throws an exception while generating the value.
+     * @throws CacheException If the $compute callback throws an exception while generating the value.
      * @throws SerializationException If serializing the value returned from the callback fails.
      */
-    public function computeIfAbsent(string $key, callable $create, ?int $ttl = null): mixed
+    public function computeIfAbsent(string $key, \Closure $compute, ?int $ttl = null): mixed
     {
         $value = $this->cache->get($key);
 
@@ -79,30 +79,27 @@ final class AtomicCache
 
         try {
             // Attempt to get the value again, since it may have been set while obtaining the lock.
-            return $this->cache->get($key) ?? $this->create($create, $key, null, $ttl);
+            return $this->cache->get($key) ?? $this->create($compute, $key, null, $ttl);
         } finally {
             $lock->release();
         }
     }
 
     /**
-     * Attempts to get the value for the given key. If the key exists, the key is locked, the $create callback
+     * Attempts to get the value for the given key. If the key exists, the key is locked, the $compute callback
      * is invoked with the key as the first parameter and the current key value as the second parameter. The value
-     * returned from the callback is stored in the cache and the promise returned from this method is resolved with
-     * the value.
+     * returned from the callback is stored in the cache and returned from this method.
      *
      * @param string $key Cache key.
-     * @param callable(string, TValue):TValue $create Receives $key and $value as parameters.
-     * @param int|null $ttl Timeout in seconds. The default `null` $ttl value indicates no timeout.
+     * @param \Closure(string, TValue):TValue $compute Receives $key and $value as parameters.
+     * @param int|null $ttl Timeout in seconds. The default {@code null} $ttl value indicates no timeout.
      *
      * @return TValue
-     *
-     * @psalm-param callable(string, TValue|null):TValue $create
      *
      * @throws CacheException If the $create callback throws an exception while generating the value.
      * @throws SerializationException If serializing the value returned from the callback fails.
      */
-    public function computeIfPresent(string $key, callable $create, ?int $ttl = null): mixed
+    public function computeIfPresent(string $key, \Closure $compute, ?int $ttl = null): mixed
     {
         $value = $this->cache->get($key);
 
@@ -120,7 +117,7 @@ final class AtomicCache
                 return null;
             }
 
-            return $this->create($create, $key, $value, $ttl);
+            return $this->create($compute, $key, $value, $ttl);
         } finally {
             $lock->release();
         }
@@ -152,10 +149,12 @@ final class AtomicCache
     /**
      * Returns the cached value for the key or the given default value if the key does not exist.
      *
-     * @param string $key Cache key.
-     * @param TValue $default Default value returned if the key does not exist. Null by default.
+     * @template TDefault
      *
-     * @return mixed Resolved with null iff $default is null.
+     * @param string $key Cache key.
+     * @param TDefault $default Default value returned if the key does not exist. Null by default.
+     *
+     * @return TValue|TDefault Resolved with null iff $default is null.
      *
      * @throws CacheException
      * @throws SerializationException
@@ -207,12 +206,12 @@ final class AtomicCache
     }
 
     /**
-     * @psalm-param TValue|null $value
+     * @param TValue|null $value
      */
-    private function create(callable $create, string $key, mixed $value, ?int $ttl): mixed
+    private function create(\Closure $compute, string $key, mixed $value, ?int $ttl): mixed
     {
         try {
-            $value = $create($key, $value);
+            $value = $compute($key, $value);
         } catch (\Throwable $exception) {
             throw new CacheException(
                 \sprintf('Exception thrown while creating the value for key "%s"', $key),

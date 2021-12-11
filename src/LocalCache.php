@@ -6,22 +6,22 @@ use Revolt\EventLoop;
 
 final class LocalCache implements Cache
 {
-    private object $sharedState;
+    private object $state;
 
-    private string $ttlWatcherId;
+    private string $gcCallbackId;
 
-    private ?int $maxSize;
+    private ?int $sizeLimit;
 
     /**
      * @param float $gcInterval The frequency in seconds at which expired cache entries should be garbage collected.
-     * @param int|null $maxSize The maximum size of cache array (number of elements). NULL for no max size.
+     * @param int|null $sizeLimit The maximum size of cache array (number of elements). NULL for unlimited size.
      */
-    public function __construct(float $gcInterval = 5, int $maxSize = null)
+    public function __construct(float $gcInterval = 5, int $sizeLimit = null)
     {
-        // By using a shared state object we're able to use `__destruct()` for "normal" garbage collection of both this
-        // instance and the loop's watcher. Otherwise, this object could only be GC'd when the TTL watcher was cancelled
-        // at the loop layer.
-        $this->sharedState = $sharedState = new class {
+        // By using a separate state object we're able to use `__destruct()` for garbage collection of both this
+        // instance and the event loop callback. Otherwise, this object could only be collected when the garbage
+        // collection callback was cancelled at the event loop layer.
+        $this->state = $state = new class {
             /** @var string[] */
             public array $cache = [];
             /** @var int[] */
@@ -51,68 +51,65 @@ final class LocalCache implements Cache
             }
         };
 
-        $this->ttlWatcherId = EventLoop::repeat($gcInterval, \Closure::fromCallable([$sharedState, "collectGarbage"]));
-        $this->maxSize = $maxSize;
+        $this->gcCallbackId = EventLoop::repeat($gcInterval, \Closure::fromCallable([$state, "collectGarbage"]));
+        $this->sizeLimit = $sizeLimit;
 
-        EventLoop::unreference($this->ttlWatcherId);
+        EventLoop::unreference($this->gcCallbackId);
     }
 
     public function __destruct()
     {
-        $this->sharedState->cache = [];
-        $this->sharedState->cacheTimeouts = [];
+        $this->state->cache = [];
+        $this->state->cacheTimeouts = [];
 
-        EventLoop::cancel($this->ttlWatcherId);
+        EventLoop::cancel($this->gcCallbackId);
     }
 
-    /** @inheritdoc */
     public function get(string $key): ?string
     {
-        if (!isset($this->sharedState->cache[$key])) {
+        if (!isset($this->state->cache[$key])) {
             return null;
         }
 
-        if (isset($this->sharedState->cacheTimeouts[$key]) && \time() > $this->sharedState->cacheTimeouts[$key]) {
+        if (isset($this->state->cacheTimeouts[$key]) && \time() > $this->state->cacheTimeouts[$key]) {
             unset(
-                $this->sharedState->cache[$key],
-                $this->sharedState->cacheTimeouts[$key]
+                $this->state->cache[$key],
+                $this->state->cacheTimeouts[$key]
             );
 
             return null;
         }
 
-        return $this->sharedState->cache[$key];
+        return $this->state->cache[$key];
     }
 
-    /** @inheritdoc */
     public function set(string $key, string $value, int $ttl = null): void
     {
         if ($ttl === null) {
-            unset($this->sharedState->cacheTimeouts[$key]);
+            unset($this->state->cacheTimeouts[$key]);
         } elseif ($ttl >= 0) {
             $expiry = \time() + $ttl;
-            $this->sharedState->cacheTimeouts[$key] = $expiry;
-            $this->sharedState->isSortNeeded = true;
+            $this->state->cacheTimeouts[$key] = $expiry;
+            $this->state->isSortNeeded = true;
         } else {
             throw new \Error("Invalid cache TTL ({$ttl}; integer >= 0 or null required");
         }
 
-        unset($this->sharedState->cache[$key]);
-        if (\count($this->sharedState->cache) === $this->maxSize) {
-            \array_shift($this->sharedState->cache);
+        unset($this->state->cache[$key]);
+        if (\count($this->state->cache) === $this->sizeLimit) {
+            \array_shift($this->state->cache);
         }
 
-        $this->sharedState->cache[$key] = $value;
+        $this->state->cache[$key] = $value;
     }
 
-    /** @inheritdoc */
     public function delete(string $key): bool
     {
-        $exists = isset($this->sharedState->cache[$key]);
+        $exists = isset($this->state->cache[$key]);
 
         unset(
-            $this->sharedState->cache[$key],
-            $this->sharedState->cacheTimeouts[$key]
+            $this->state->cache[$key],
+            $this->state->cacheTimeouts[$key]
         );
 
         return $exists;
