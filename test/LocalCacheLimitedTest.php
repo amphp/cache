@@ -2,10 +2,10 @@
 
 namespace Amp\Cache\Test;
 
-use Amp\Cache\ArrayCache;
 use Amp\Cache\Cache;
+use Amp\Cache\LocalCache;
 
-class ArrayCacheLimitedTest extends CacheTest
+class LocalCacheLimitedTest extends CacheTest
 {
     public function testEntryIsNotReturnedAfterCacheLimitReached(): void
     {
@@ -20,6 +20,6 @@ class ArrayCacheLimitedTest extends CacheTest
 
     protected function createCache(): Cache
     {
-        return new ArrayCache(5, 5);
+        return new LocalCache(5, 5);
     }
 }

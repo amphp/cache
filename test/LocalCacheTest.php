@@ -2,13 +2,13 @@
 
 namespace Amp\Cache\Test;
 
-use Amp\Cache\ArrayCache;
 use Amp\Cache\Cache;
+use Amp\Cache\LocalCache;
 
-class ArrayCacheTest extends CacheTest
+class LocalCacheTest extends CacheTest
 {
     protected function createCache(): Cache
     {
-        return new ArrayCache;
+        return new LocalCache;
     }
 }

@@ -2,8 +2,8 @@
 
 namespace Amp\Cache\Test;
 
-use Amp\Cache\ArrayCache;
 use Amp\Cache\Cache;
+use Amp\Cache\LocalCache;
 use Amp\Cache\PrefixCache;
 
 class PrefixCacheTest extends CacheTest
@@ -16,6 +16,6 @@ class PrefixCacheTest extends CacheTest
     /** @return PrefixCache */
     protected function createCache(): Cache
     {
-        return new PrefixCache(new ArrayCache, "prefix.");
+        return new PrefixCache(new LocalCache, "prefix.");
     }
 }

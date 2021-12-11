@@ -4,7 +4,7 @@ namespace Amp\Cache;
 
 use Revolt\EventLoop;
 
-final class ArrayCache implements Cache
+final class LocalCache implements Cache
 {
     private object $sharedState;
 
