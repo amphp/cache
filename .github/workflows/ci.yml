@@ -11,7 +11,9 @@ jobs:
         include:
           - operating-system: 'ubuntu-latest'
             php-version: '8.0'
-            composer-flags: '--ignore-platform-req=php'
+
+          - operating-system: 'ubuntu-latest'
+            php-version: '8.1'
 
     name: PHP ${{ matrix.php-version }} ${{ matrix.job-description }}
 
@@ -66,4 +68,4 @@ jobs:
           PHP_CS_FIXER_IGNORE_ENV: 1
 
       - name: Run static analysis
-        run: vendor/bin/psalm
+        run: vendor/bin/psalm.phar
