@@ -4,8 +4,7 @@
     "description": "A promise-aware caching API for Amp.",
     "license": "MIT",
     "support": {
-        "issues": "https://github.com/amphp/cache/issues",
-        "irc": "irc://irc.freenode.org/amphp"
+        "issues": "https://github.com/amphp/cache/issues"
     },
     "authors": [
         {
@@ -37,7 +36,7 @@
     "prefer-stable": true,
     "autoload": {
         "psr-4": {
-            "Amp\\Cache\\": "lib"
+            "Amp\\Cache\\": "src"
         }
     },
     "autoload-dev": {
