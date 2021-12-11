@@ -19,7 +19,7 @@ final class ArrayCache implements Cache
     public function __construct(float $gcInterval = 5, int $maxSize = null)
     {
         // By using a shared state object we're able to use `__destruct()` for "normal" garbage collection of both this
-        // instance and the loop's watcher. Otherwise this object could only be GC'd when the TTL watcher was cancelled
+        // instance and the loop's watcher. Otherwise, this object could only be GC'd when the TTL watcher was cancelled
         // at the loop layer.
         $this->sharedState = $sharedState = new class {
             /** @var string[] */

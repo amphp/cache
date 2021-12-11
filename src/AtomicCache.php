@@ -79,13 +79,7 @@ final class AtomicCache
 
         try {
             // Attempt to get the value again, since it may have been set while obtaining the lock.
-            $value = $this->cache->get($key);
-
-            if ($value !== null) {
-                return $value;
-            }
-
-            return $this->create($create, $key, null, $ttl);
+            return $this->cache->get($key) ?? $this->create($create, $key, null, $ttl);
         } finally {
             $lock->release();
         }
@@ -144,7 +138,7 @@ final class AtomicCache
      *
      * @see SerializedCache::set()
      */
-    public function set(string $key, $value, ?int $ttl = null): void
+    public function set(string $key, mixed $value, ?int $ttl = null): void
     {
         $lock = $this->lock($key);
 

@@ -11,8 +11,8 @@ use Amp\Serialization\NativeSerializer;
 use Amp\Serialization\PassthroughSerializer;
 use Amp\Sync\KeyedMutex;
 use Amp\Sync\LocalKeyedMutex;
-use function Amp\delay;
 use function Amp\async;
+use function Amp\delay;
 
 class AtomicCacheTest extends AsyncTestCase
 {
