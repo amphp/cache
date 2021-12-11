@@ -12,7 +12,7 @@ use Amp\Serialization\PassthroughSerializer;
 use Amp\Sync\KeyedMutex;
 use Amp\Sync\LocalKeyedMutex;
 use function Amp\delay;
-use function Amp\launch;
+use function Amp\async;
 
 class AtomicCacheTest extends AsyncTestCase
 {
@@ -125,9 +125,9 @@ class AtomicCacheTest extends AsyncTestCase
             return 'value';
         };
 
-        $setPromise = launch(fn () => $atomicCache->computeIfAbsent('key', $callback));
+        $setPromise = async(fn () => $atomicCache->computeIfAbsent('key', $callback));
 
-        $getPromise = launch(fn () => $atomicCache->computeIfAbsent('key', $this->createCallback(0)));
+        $getPromise = async(fn () => $atomicCache->computeIfAbsent('key', $this->createCallback(0)));
 
         self::assertSame('value', $setPromise->await());
         self::assertSame('value', $getPromise->await());
@@ -148,9 +148,9 @@ class AtomicCacheTest extends AsyncTestCase
             return 'value';
         };
 
-        $setPromise = launch(fn () => $atomicCache->compute('key', $callback));
+        $setPromise = async(fn () => $atomicCache->compute('key', $callback));
 
-        $getPromise = launch(fn () => $atomicCache->computeIfAbsent('key', $this->createCallback(0)));
+        $getPromise = async(fn () => $atomicCache->computeIfAbsent('key', $this->createCallback(0)));
 
         self::assertSame('value', $setPromise->await());
         self::assertSame('value', $getPromise->await());
@@ -174,9 +174,9 @@ class AtomicCacheTest extends AsyncTestCase
             return $value + 1;
         };
 
-        $promise1 = launch(fn () => $atomicCache->compute('key', $callback));
+        $promise1 = async(fn () => $atomicCache->compute('key', $callback));
 
-        $promise2 = launch(fn () => $atomicCache->compute('key', $callback));
+        $promise2 = async(fn () => $atomicCache->compute('key', $callback));
 
         self::assertSame(1, $promise1->await());
         self::assertSame(2, $promise2->await());
@@ -275,11 +275,11 @@ class AtomicCacheTest extends AsyncTestCase
 
         $atomicCache->set('key', 'value');
 
-        $computePromise = launch(fn () => $atomicCache->computeIfPresent('key', function (): string {
+        $computePromise = async(fn () => $atomicCache->computeIfPresent('key', function (): string {
             return 'new-value';
         }));
 
-        $deletePromise = launch(fn () => $atomicCache->delete('key'));
+        $deletePromise = async(fn () => $atomicCache->delete('key'));
 
         self::assertSame('new-value', $computePromise->await());
         self::assertTrue($deletePromise->await());

@@ -103,8 +103,7 @@ final class AtomicCache
      *
      * @return TValue
      *
-     * @psalm-param callable(string, TValue|null): (TValue|Promise<TValue>|\Generator<mixed, mixed, mixed, TValue>)
-     *     $create
+     * @psalm-param callable(string, TValue|null):TValue $create
      *
      * @throws CacheException If the $create callback throws an exception while generating the value.
      * @throws SerializationException If serializing the value returned from the callback fails.

@@ -2,10 +2,6 @@
 
 namespace Amp\Cache;
 
-/**
- * @template TValue
- * @template-implements Cache<TValue>
- */
 final class PrefixCache implements Cache
 {
     private Cache $cache;
@@ -27,19 +23,16 @@ final class PrefixCache implements Cache
         return $this->keyPrefix;
     }
 
-    /** @inheritdoc */
     public function get(string $key): ?string
     {
         return $this->cache->get($this->keyPrefix . $key);
     }
 
-    /** @inheritdoc */
     public function set(string $key, string $value, int $ttl = null): void
     {
         $this->cache->set($this->keyPrefix . $key, $value, $ttl);
     }
 
-    /** @inheritdoc */
     public function delete(string $key): ?bool
     {
         return $this->cache->delete($this->keyPrefix . $key);
