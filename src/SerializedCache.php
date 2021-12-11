@@ -2,6 +2,7 @@
 
 namespace Amp\Cache;
 
+use Amp\Serialization\SerializationException;
 use Amp\Serialization\Serializer;
 
 /**
@@ -24,8 +25,10 @@ final class SerializedCache
      *
      * @param $key string Cache key.
      *
-     * @return TValue Returns the cached value or `null` if it doesn't exist. Throws a CacheException or
-     * SerializationException on failure.
+     * @return TValue Returns the cached value or {@code null} if it doesn't exist.
+     *
+     * @throws CacheException
+     * @throws SerializationException
      *
      * @see Cache::get()
      */
@@ -44,8 +47,11 @@ final class SerializedCache
      *
      * @param string $key Cache key.
      * @param TValue $value Value to cache.
-     * @param int|null $ttl Timeout in seconds. The default `null` $ttl value indicates no timeout. Values less
+     * @param int|null $ttl Timeout in seconds. The default {@code null} $ttl value indicates no timeout. Values less
      *     than 0 MUST throw an \Error.
+     *
+     * @throws CacheException
+     * @throws SerializationException
      *
      * @see Cache::set()
      */
@@ -65,8 +71,10 @@ final class SerializedCache
      *
      * @param $key string Cache key.
      *
-     * @return bool|null Returns `true` / `false` to indicate whether the key existed or fails with a
-     * CacheException on failure. May also return `null` if that information is not available.
+     * @return bool|null Returns {@code true} / {@code false} to indicate whether the key existed, or {@code null} if
+     *     that information is not available.
+     *
+     * @throws CacheException
      *
      * @see Cache::delete()
      */
