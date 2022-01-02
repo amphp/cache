@@ -162,7 +162,7 @@ class AtomicCacheTest extends AsyncTestCase
         $internalCache = new LocalCache;
         $atomicCache = new AtomicCache($internalCache, new LocalKeyedMutex);
 
-        $atomicCache->set('key', 0);
+        $internalCache->set('key', 0);
 
         $callback = function (string $key, int $value): int {
             $this->assertSame('key', $key);
@@ -190,67 +190,6 @@ class AtomicCacheTest extends AsyncTestCase
         });
     }
 
-    public function testSetNull(): void
-    {
-        $this->expectException(CacheException::class);
-        $this->expectExceptionMessage('Cannot store NULL');
-
-        $cache = new AtomicCache(new LocalCache, new LocalKeyedMutex);
-        $cache->set('key', null);
-    }
-
-    public function provideSerializableValues(): array
-    {
-        return [
-            [new \stdClass],
-            [1],
-            [true],
-            [3.14],
-        ];
-    }
-
-    /**
-     * @dataProvider provideSerializableValues
-     */
-    public function testComputeCallbackReturningSerializableValue($value): void
-    {
-        $cache = new AtomicCache(new LocalCache, new LocalKeyedMutex);
-
-        $result = $cache->compute('key', function () use ($value) {
-            return $value;
-        });
-
-        self::assertEquals($value, $result);
-        self::assertEquals($value, $cache->get('key'));
-    }
-
-    /**
-     * @dataProvider provideSerializableValues
-     */
-    public function testComputeCallbackReturningNonString($value): void
-    {
-        $cache = new AtomicCache(new LocalCache, new LocalKeyedMutex);
-
-        $result = $cache->compute('key', function () use ($value) {
-            return $value;
-        });
-
-        self::assertEquals($value, $result);
-        self::assertEquals($value, $cache->get('key'));
-    }
-
-    public function testGetOrDefault(): void
-    {
-        $internalCache = new LocalCache;
-        $atomicCache = new AtomicCache($internalCache, new LocalKeyedMutex);
-
-        self::assertSame('default', $atomicCache->get('key', 'default'));
-
-        $internalCache->set('key', 'value');
-
-        self::assertSame('value', $atomicCache->get('key', 'default'));
-    }
-
     public function testFailingMutex(): void
     {
         $mutex = $this->createMock(KeyedMutex::class);
@@ -270,7 +209,7 @@ class AtomicCacheTest extends AsyncTestCase
         $internalCache = new LocalCache;
         $atomicCache = new AtomicCache($internalCache, new LocalKeyedMutex);
 
-        $atomicCache->set('key', 'value');
+        $internalCache->set('key', 'value');
 
         $computePromise = async(fn () => $atomicCache->computeIfPresent('key', function (): string {
             return 'new-value';

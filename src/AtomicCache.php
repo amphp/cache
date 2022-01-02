@@ -2,7 +2,6 @@
 
 namespace Amp\Cache;
 
-use Amp\Serialization\SerializationException;
 use Amp\Sync\KeyedMutex;
 use Amp\Sync\Lock;
 
@@ -38,7 +37,6 @@ final class AtomicCache
      * @return TValue
      *
      * @throws CacheException If the $create callback throws an exception while generating the value.
-     * @throws SerializationException If serializing the value returned from the callback fails.
      */
     public function compute(string $key, \Closure $compute, ?int $ttl = null): mixed
     {
@@ -65,7 +63,6 @@ final class AtomicCache
      * @return TValue
      *
      * @throws CacheException If the $compute callback throws an exception while generating the value.
-     * @throws SerializationException If serializing the value returned from the callback fails.
      */
     public function computeIfAbsent(string $key, \Closure $compute, ?int $ttl = null): mixed
     {
@@ -97,7 +94,6 @@ final class AtomicCache
      * @return TValue
      *
      * @throws CacheException If the $create callback throws an exception while generating the value.
-     * @throws SerializationException If serializing the value returned from the callback fails.
      */
     public function computeIfPresent(string $key, \Closure $compute, ?int $ttl = null): mixed
     {
@@ -124,62 +120,13 @@ final class AtomicCache
     }
 
     /**
-     * The lock is obtained for the key before setting the value.
-     *
-     * @param string $key Cache key.
-     * @param TValue $value Value to cache.
-     * @param int|null $ttl Timeout in seconds. The default `null` $ttl value indicates no timeout.
-     *
-     * @throws CacheException
-     * @throws SerializationException
-     *
-     * @see SerializedCache::set()
-     */
-    public function set(string $key, mixed $value, ?int $ttl = null): void
-    {
-        $lock = $this->lock($key);
-
-        try {
-            $this->cache->set($key, $value, $ttl);
-        } finally {
-            $lock->release();
-        }
-    }
-
-    /**
-     * Returns the cached value for the key or the given default value if the key does not exist.
-     *
-     * @template TDefault
-     *
-     * @param string $key Cache key.
-     * @param TDefault $default Default value returned if the key does not exist. Null by default.
-     *
-     * @return TValue|TDefault Resolved with null iff $default is null.
-     *
-     * @throws CacheException
-     * @throws SerializationException
-     *
-     * @see SerializedCache::get()
-     */
-    public function get(string $key, mixed $default = null): mixed
-    {
-        $value = $this->cache->get($key);
-
-        if ($value === null) {
-            return $default;
-        }
-
-        return $value;
-    }
-
-    /**
      * The lock is obtained for the key before deleting the key.
      *
      * @param string $key
      *
      * @return bool|null
      *
-     * @see SerializedCache::delete()
+     * @see Cache::delete()
      */
     public function delete(string $key): ?bool
     {
