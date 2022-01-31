@@ -25,7 +25,7 @@
         "amphp/amp": "^3",
         "amphp/serialization": "^1",
         "amphp/sync": "^2",
-        "revolt/event-loop": "^0.1.1"
+        "revolt/event-loop": "^0.2"
     },
     "require-dev": {
         "amphp/phpunit-util": "^3",
