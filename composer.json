@@ -24,7 +24,7 @@
         "php": ">=8",
         "amphp/amp": "^3",
         "amphp/serialization": "^1",
-        "amphp/sync": "^2-dev",
+        "amphp/sync": "^2",
         "revolt/event-loop": "^0.2"
     },
     "require-dev": {
