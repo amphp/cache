@@ -24,13 +24,13 @@
         "php": ">=8",
         "amphp/amp": "^3",
         "amphp/serialization": "^1",
-        "amphp/sync": "^2",
+        "amphp/sync": "^2-dev",
         "revolt/event-loop": "^0.2"
     },
     "require-dev": {
         "amphp/phpunit-util": "^3",
         "phpunit/phpunit": "^9",
-        "amphp/php-cs-fixer-config": "dev-master",
+        "amphp/php-cs-fixer-config": "^2-dev",
         "psalm/phar": "^4.15"
     },
     "minimum-stability": "beta",
