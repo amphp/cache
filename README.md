@@ -1,13 +1,50 @@
-# cache
+# amphp/cache
 
-[![Build Status](https://img.shields.io/travis/amphp/cache/1.x.svg?style=flat-square)](https://travis-ci.org/amphp/cache)
-[![CoverageStatus](https://img.shields.io/coveralls/amphp/cache/1.x.svg?style=flat-square)](https://coveralls.io/github/amphp/cache?branch=1.x)
-![License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)
+AMPHP is a collection of event-driven libraries for PHP designed with fibers and concurrency in mind.
+`amphp/cache` specifically provides a cache interface and multiple implementations of it.
 
-`amphp/cache` is a non-blocking caching library for [Amp](https://github.com/amphp/amp).
+[![Latest Release](https://img.shields.io/github/release/amphp/cache.svg?style=flat-square)](https://github.com/amphp/cache/releases)
+[![MIT License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](https://github.com/amphp/cache/blob/master/LICENSE)
 
 ## Installation
+
+This package can be installed as a [Composer](https://getcomposer.org/) dependency.
 
 ```bash
 composer require amphp/cache
 ```
+
+## Usage
+
+### AtomicCache
+
+### Cache
+
+```php
+<?php
+
+namespace Amp\Cache;
+
+interface Cache
+{
+    public function get(string $key): mixed;
+
+    public function set(string $key, mixed $value, int $ttl = null): void;
+
+    public function delete(string $key): ?bool;
+}
+```
+
+### LocalCache
+
+### NullCache
+
+Cache implementation that just ignores all operations and always resolves to `null`.
+
+### PrefixCache
+
+### SerializedCache
+
+### StringCache
+
+### StringCacheAdapter
