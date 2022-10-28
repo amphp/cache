@@ -4,26 +4,26 @@ namespace Amp\Cache;
 
 use Revolt\EventLoop;
 
-final class LocalCache implements Cache
+final class LocalCache implements Cache, \Countable, \IteratorAggregate
 {
-    private object $state;
+    private readonly object $state;
 
-    private string $gcCallbackId;
+    private readonly string $gcCallbackId;
 
-    private ?int $sizeLimit;
+    private readonly ?int $sizeLimit;
 
     /**
      * @param int|null $sizeLimit The maximum size of cache array (number of elements). NULL for unlimited size.
      * @param float $gcInterval The frequency in seconds at which expired cache entries should be garbage collected.
      */
-    public function __construct(int $sizeLimit = null, float $gcInterval = 5)
+    public function __construct(?int $sizeLimit = null, float $gcInterval = 5)
     {
         // By using a separate state object we're able to use `__destruct()` for garbage collection of both this
         // instance and the event loop callback. Otherwise, this object could only be collected when the garbage
         // collection callback was cancelled at the event loop layer.
         $this->state = $state = new class {
-            /** @var array */
             public array $cache = [];
+
             /** @var int[] */
             public array $cacheTimeouts = [];
 
@@ -51,7 +51,7 @@ final class LocalCache implements Cache
             }
         };
 
-        $this->gcCallbackId = EventLoop::repeat($gcInterval, \Closure::fromCallable([$state, "collectGarbage"]));
+        $this->gcCallbackId = EventLoop::repeat($gcInterval, $state->collectGarbage(...));
         $this->sizeLimit = $sizeLimit;
 
         EventLoop::unreference($this->gcCallbackId);
@@ -71,16 +71,18 @@ final class LocalCache implements Cache
             return null;
         }
 
+        $value = $this->state->cache[$key];
+        unset($this->state->cache[$key]);
+
         if (isset($this->state->cacheTimeouts[$key]) && \time() > $this->state->cacheTimeouts[$key]) {
-            unset(
-                $this->state->cache[$key],
-                $this->state->cacheTimeouts[$key]
-            );
+            unset($this->state->cacheTimeouts[$key]);
 
             return null;
         }
 
-        return $this->state->cache[$key];
+        $this->state->cache[$key] = $value;
+
+        return $value;
     }
 
     public function set(string $key, mixed $value, int $ttl = null): void
@@ -117,5 +119,15 @@ final class LocalCache implements Cache
         );
 
         return $exists;
+    }
+
+    public function count(): int
+    {
+        return \count($this->state->cache);
+    }
+
+    public function getIterator(): \Traversable
+    {
+        yield from $this->state->cache;
     }
 }
