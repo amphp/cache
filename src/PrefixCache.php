@@ -12,8 +12,6 @@ final class PrefixCache implements Cache
 
     /**
      * Gets the specified key prefix.
-     *
-     * @return string
      */
     public function getKeyPrefix(): string
     {

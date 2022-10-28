@@ -12,7 +12,6 @@ final class AtomicCache
 {
     /**
      * @param Cache<TValue> $cache
-     * @param KeyedMutex $mutex
      */
     public function __construct(
         private readonly Cache $cache,
@@ -25,7 +24,6 @@ final class AtomicCache
      * (which may be {@code null} if the key did not exist in the cache). The value returned from the callback is stored
      * in the cache and returned from this method.
      *
-     * @param string $key
      * @param \Closure(string, TValue|null):TValue $compute Receives $key and $value as parameters.
      * @param int|null $ttl Timeout in seconds. The default {@code null} $ttl value indicates no timeout.
      *
@@ -161,10 +159,6 @@ final class AtomicCache
 
     /**
      * The lock is obtained for the key before deleting the key.
-     *
-     * @param string $key
-     *
-     * @return bool|null
      *
      * @throws CacheException
      */
