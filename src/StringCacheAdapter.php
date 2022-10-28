@@ -4,11 +4,8 @@ namespace Amp\Cache;
 
 final class StringCacheAdapter implements StringCache
 {
-    private Cache $cache;
-
-    public function __construct(Cache $cache)
+    public function __construct(private readonly Cache $cache)
     {
-        $this->cache = $cache;
     }
 
     public function get(string $key): ?string

@@ -21,7 +21,7 @@
         }
     ],
     "require": {
-        "php": ">=8",
+        "php": ">=8.1",
         "amphp/amp": "^3",
         "amphp/serialization": "^1",
         "amphp/sync": "^2",
@@ -31,7 +31,7 @@
         "amphp/phpunit-util": "^3",
         "phpunit/phpunit": "^9",
         "amphp/php-cs-fixer-config": "^2-dev",
-        "psalm/phar": "^4.15"
+        "psalm/phar": "^4.29"
     },
     "minimum-stability": "beta",
     "prefer-stable": true,

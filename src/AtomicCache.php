@@ -2,7 +2,6 @@
 
 namespace Amp\Cache;
 
-use Amp\Serialization\SerializationException;
 use Amp\Sync\KeyedMutex;
 use Amp\Sync\Lock;
 
@@ -11,19 +10,14 @@ use Amp\Sync\Lock;
  */
 final class AtomicCache
 {
-    /** @var Cache<TValue> */
-    private Cache $cache;
-
-    private KeyedMutex $mutex;
-
     /**
      * @param Cache<TValue> $cache
      * @param KeyedMutex $mutex
      */
-    public function __construct(Cache $cache, KeyedMutex $mutex)
-    {
-        $this->cache = $cache;
-        $this->mutex = $mutex;
+    public function __construct(
+        private readonly Cache $cache,
+        private readonly KeyedMutex $mutex,
+    ) {
     }
 
     /**
@@ -38,7 +32,6 @@ final class AtomicCache
      * @return TValue
      *
      * @throws CacheException If the $create callback throws an exception while generating the value.
-     * @throws SerializationException If serializing the value returned from the callback fails.
      */
     public function compute(string $key, \Closure $compute, ?int $ttl = null): mixed
     {
@@ -65,7 +58,6 @@ final class AtomicCache
      * @return TValue
      *
      * @throws CacheException If the $compute callback throws an exception while generating the value.
-     * @throws SerializationException If serializing the value returned from the callback fails.
      */
     public function computeIfAbsent(string $key, \Closure $compute, ?int $ttl = null): mixed
     {
@@ -97,7 +89,6 @@ final class AtomicCache
      * @return TValue
      *
      * @throws CacheException If the $create callback throws an exception while generating the value.
-     * @throws SerializationException If serializing the value returned from the callback fails.
      */
     public function computeIfPresent(string $key, \Closure $compute, ?int $ttl = null): mixed
     {
@@ -131,7 +122,6 @@ final class AtomicCache
      * @param int|null $ttl Timeout in seconds. The default `null` $ttl value indicates no timeout.
      *
      * @throws CacheException
-     * @throws SerializationException
      *
      * @see SerializedCache::set()
      */
@@ -157,9 +147,6 @@ final class AtomicCache
      * @return TValue|TDefault Resolved with null iff $default is null.
      *
      * @throws CacheException
-     * @throws SerializationException
-     *
-     * @see SerializedCache::get()
      */
     public function get(string $key, mixed $default = null): mixed
     {
@@ -179,7 +166,7 @@ final class AtomicCache
      *
      * @return bool|null
      *
-     * @see SerializedCache::delete()
+     * @throws CacheException
      */
     public function delete(string $key): ?bool
     {
@@ -207,6 +194,8 @@ final class AtomicCache
 
     /**
      * @param TValue|null $value
+     *
+     * @throws CacheException
      */
     private function create(\Closure $compute, string $key, mixed $value, ?int $ttl): mixed
     {

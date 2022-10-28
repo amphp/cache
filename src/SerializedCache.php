@@ -10,14 +10,10 @@ use Amp\Serialization\Serializer;
  */
 final class SerializedCache implements Cache
 {
-    private StringCache $cache;
-
-    private Serializer $serializer;
-
-    public function __construct(StringCache $cache, Serializer $serializer)
-    {
-        $this->cache = $cache;
-        $this->serializer = $serializer;
+    public function __construct(
+        private readonly StringCache $cache,
+        private readonly Serializer $serializer,
+    ) {
     }
 
     /**

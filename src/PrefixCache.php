@@ -4,13 +4,10 @@ namespace Amp\Cache;
 
 final class PrefixCache implements Cache
 {
-    private Cache $cache;
-    private string $keyPrefix;
-
-    public function __construct(Cache $cache, string $keyPrefix)
-    {
-        $this->cache = $cache;
-        $this->keyPrefix = $keyPrefix;
+    public function __construct(
+        private readonly Cache $cache,
+        private readonly string $keyPrefix,
+    ) {
     }
 
     /**
