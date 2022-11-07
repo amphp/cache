@@ -22,8 +22,8 @@ final class LocalCache implements Cache
         // instance and the event loop callback. Otherwise, this object could only be collected when the garbage
         // collection callback was cancelled at the event loop layer.
         $this->state = $state = new class {
-            /** @var array */
             public array $cache = [];
+
             /** @var int[] */
             public array $cacheTimeouts = [];
 
