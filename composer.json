@@ -30,11 +30,9 @@
     "require-dev": {
         "amphp/phpunit-util": "^3",
         "phpunit/phpunit": "^9",
-        "amphp/php-cs-fixer-config": "^2-dev",
+        "amphp/php-cs-fixer-config": "^2",
         "psalm/phar": "^4.29"
     },
-    "minimum-stability": "beta",
-    "prefer-stable": true,
     "autoload": {
         "psr-4": {
             "Amp\\Cache\\": "src"
