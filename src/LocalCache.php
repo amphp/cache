@@ -6,6 +6,11 @@ use Amp\ForbidCloning;
 use Amp\ForbidSerialization;
 use Revolt\EventLoop;
 
+/**
+ * @template TValue
+ * @implements Cache<TValue>
+ * @implements \IteratorAggregate<int, TValue>
+ */
 final class LocalCache implements Cache, \Countable, \IteratorAggregate
 {
     use ForbidCloning;

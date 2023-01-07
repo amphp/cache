@@ -7,13 +7,16 @@ use Amp\ForbidSerialization;
 
 /**
  * Cache implementation that just ignores all operations and always resolves to `null`.
+ *
+ * @template TValue
+ * @implements Cache<TValue>
  */
 final class NullCache implements Cache
 {
     use ForbidCloning;
     use ForbidSerialization;
 
-    public function get(string $key): ?string
+    public function get(string $key): mixed
     {
         return null;
     }

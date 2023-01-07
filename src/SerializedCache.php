@@ -9,6 +9,7 @@ use Amp\Serialization\Serializer;
 
 /**
  * @template TValue
+ * @implements Cache<TValue>
  */
 final class SerializedCache implements Cache
 {

@@ -5,6 +5,10 @@ namespace Amp\Cache;
 use Amp\ForbidCloning;
 use Amp\ForbidSerialization;
 
+/**
+ * @template TValue
+ * @implements Cache<TValue>
+ */
 final class PrefixCache implements Cache
 {
     use ForbidCloning;
@@ -24,7 +28,7 @@ final class PrefixCache implements Cache
         return $this->keyPrefix;
     }
 
-    public function get(string $key): ?string
+    public function get(string $key): mixed
     {
         return $this->cache->get($this->keyPrefix . $key);
     }
