@@ -2,11 +2,17 @@
 
 namespace Amp\Cache;
 
+use Amp\ForbidCloning;
+use Amp\ForbidSerialization;
+
 /**
  * Cache implementation that just ignores all operations and always resolves to `null`.
  */
 final class NullCache implements Cache
 {
+    use ForbidCloning;
+    use ForbidSerialization;
+
     public function get(string $key): ?string
     {
         return null;

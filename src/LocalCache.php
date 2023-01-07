@@ -2,10 +2,15 @@
 
 namespace Amp\Cache;
 
+use Amp\ForbidCloning;
+use Amp\ForbidSerialization;
 use Revolt\EventLoop;
 
 final class LocalCache implements Cache, \Countable, \IteratorAggregate
 {
+    use ForbidCloning;
+    use ForbidSerialization;
+
     private readonly object $state;
 
     private readonly string $gcCallbackId;

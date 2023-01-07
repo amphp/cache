@@ -2,6 +2,8 @@
 
 namespace Amp\Cache;
 
+use Amp\ForbidCloning;
+use Amp\ForbidSerialization;
 use Amp\Sync\KeyedMutex;
 use Amp\Sync\Lock;
 
@@ -10,6 +12,9 @@ use Amp\Sync\Lock;
  */
 final class AtomicCache
 {
+    use ForbidCloning;
+    use ForbidSerialization;
+
     /**
      * @param Cache<TValue> $cache
      */

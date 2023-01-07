@@ -2,6 +2,8 @@
 
 namespace Amp\Cache;
 
+use Amp\ForbidCloning;
+use Amp\ForbidSerialization;
 use Amp\Serialization\SerializationException;
 use Amp\Serialization\Serializer;
 
@@ -10,6 +12,9 @@ use Amp\Serialization\Serializer;
  */
 final class SerializedCache implements Cache
 {
+    use ForbidCloning;
+    use ForbidSerialization;
+
     public function __construct(
         private readonly StringCache $cache,
         private readonly Serializer $serializer,

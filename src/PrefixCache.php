@@ -2,8 +2,14 @@
 
 namespace Amp\Cache;
 
+use Amp\ForbidCloning;
+use Amp\ForbidSerialization;
+
 final class PrefixCache implements Cache
 {
+    use ForbidCloning;
+    use ForbidSerialization;
+
     public function __construct(
         private readonly Cache $cache,
         private readonly string $keyPrefix,
