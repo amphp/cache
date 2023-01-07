@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Amp\Cache\Test;
 
@@ -13,7 +13,7 @@ class LocalCacheLimitedTest extends StringCacheTest
         $cache = $this->createCache();
 
         for ($i = 1; $i <= 6; $i++) {
-            $cache->set("foo_$i", $i, 0);
+            $cache->set("foo_$i", (string) $i, 0);
         }
 
         self::assertNull($cache->get("foo_1"));
@@ -24,11 +24,11 @@ class LocalCacheLimitedTest extends StringCacheTest
         $cache = $this->createCache();
 
         for ($i = 1; $i <= 5; $i++) {
-            $cache->set("foo_$i", $i, 0);
+            $cache->set("foo_$i", (string) $i, 0);
         }
 
         $cache->get("foo_1"); // Touch foo_1 to mark recently used
-        $cache->set("foo_6", 6); // Add another key to exceed cache size limit
+        $cache->set("foo_6", '6'); // Add another key to exceed cache size limit
 
         self::assertNull($cache->get("foo_2"));
     }
