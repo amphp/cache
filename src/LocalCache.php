@@ -7,9 +7,13 @@ use Amp\ForbidSerialization;
 use Revolt\EventLoop;
 
 /**
+ * A cache which stores data in an in-memory (local) array.
+ * This class may be used as a least-recently-used (LRU) cache of a given size.
+ * Iterating over the cache will iterate from least-recently-used to most-recently-used.
+ *
  * @template TValue
  * @implements Cache<TValue>
- * @implements \IteratorAggregate<int, TValue>
+ * @implements \IteratorAggregate<string, TValue>
  */
 final class LocalCache implements Cache, \Countable, \IteratorAggregate
 {
@@ -34,7 +38,7 @@ final class LocalCache implements Cache, \Countable, \IteratorAggregate
         $this->state = $state = new class {
             public array $cache = [];
 
-            /** @var int[] */
+            /** @var array<string, int> */
             public array $cacheTimeouts = [];
 
             public bool $isSortNeeded = false;
