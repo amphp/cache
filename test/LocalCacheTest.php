@@ -25,4 +25,42 @@ class LocalCacheTest extends StringCacheTest
         self::assertSame('123', $key ?? null);
         self::assertSame('foobar', $value ?? null);
     }
+
+    public function testSizeSetNew(): void
+    {
+        $cache = new LocalCache(2);
+        $cache->set('1', 'foobar1');
+        $cache->set('2', 'foobar2');
+        $cache->set('3', 'foobar3');
+
+        $keys = [];
+        $values = [];
+
+        foreach ($cache as $key => $value) {
+            $keys[] = $key;
+            $values[] = $value;
+        }
+
+        self::assertSame(['2', '3'], $keys);
+        self::assertSame(['foobar2', 'foobar3'], $values);
+    }
+
+    public function testSizeSetExisting(): void
+    {
+        $cache = new LocalCache(2);
+        $cache->set('1', 'foobar1');
+        $cache->set('2', 'foobar2');
+        $cache->set('2', 'foobar3');
+
+        $keys = [];
+        $values = [];
+
+        foreach ($cache as $key => $value) {
+            $keys[] = $key;
+            $values[] = $value;
+        }
+
+        self::assertSame(['1', '2'], $keys);
+        self::assertSame(['foobar1', 'foobar3'], $values);
+    }
 }

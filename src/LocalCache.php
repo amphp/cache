@@ -117,7 +117,7 @@ final class LocalCache implements Cache, \Countable, \IteratorAggregate
 
         unset($this->state->cache[$key]);
         if (\count($this->state->cache) === $this->sizeLimit) {
-            \array_shift($this->state->cache);
+            unset($this->state->cache[\array_key_first($this->state->cache)]);
         }
 
         $this->state->cache[$key] = $value;
