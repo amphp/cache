@@ -24,14 +24,19 @@ final class LocalCache implements Cache, \Countable, \IteratorAggregate
 
     private readonly string $gcCallbackId;
 
+    /** @var int<1, max>|null */
     private readonly ?int $sizeLimit;
 
     /**
-     * @param int|null $sizeLimit The maximum size of cache array (number of elements). NULL for unlimited size.
+     * @param int<1, max>|null $sizeLimit The maximum size of cache array (number of elements). NULL for unlimited size.
      * @param float $gcInterval The frequency in seconds at which expired cache entries should be garbage collected.
      */
     public function __construct(?int $sizeLimit = null, float $gcInterval = 5)
     {
+        if ($sizeLimit !== null && $sizeLimit < 1) {
+            throw new \Error('Invalid sizeLimit, must be > 0: ' . $sizeLimit);
+        }
+
         // By using a separate state object we're able to use `__destruct()` for garbage collection of both this
         // instance and the event loop callback. Otherwise, this object could only be collected when the garbage
         // collection callback was cancelled at the event loop layer.
@@ -117,7 +122,9 @@ final class LocalCache implements Cache, \Countable, \IteratorAggregate
 
         unset($this->state->cache[$key]);
         if (\count($this->state->cache) === $this->sizeLimit) {
-            unset($this->state->cache[\array_key_first($this->state->cache)]);
+            /** @var array-key $keyToEvict */
+            $keyToEvict = \array_key_first($this->state->cache);
+            unset($this->state->cache[$keyToEvict]);
         }
 
         $this->state->cache[$key] = $value;
