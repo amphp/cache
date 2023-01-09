@@ -1,7 +1,7 @@
 {
     "name": "amphp/cache",
-    "homepage": "https://github.com/amphp/cache",
-    "description": "A promise-aware caching API for Amp.",
+    "homepage": "https://amphp.org/cache",
+    "description": "A fiber-aware cache API based on Amp and Revolt.",
     "license": "MIT",
     "support": {
         "issues": "https://github.com/amphp/cache/issues"
