@@ -142,6 +142,8 @@ final class LocalCache implements Cache, \Countable, \IteratorAggregate
 
     public function getIterator(): \Traversable
     {
-        yield from $this->state->cache;
+        foreach ($this->state->cache as $key => $value) {
+            yield (string) $key => $value;
+        }
     }
 }

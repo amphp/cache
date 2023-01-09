@@ -12,4 +12,17 @@ class LocalCacheTest extends StringCacheTest
     {
         return new StringCacheAdapter(new LocalCache);
     }
+
+    public function testKeyType(): void
+    {
+        $cache = new LocalCache();
+        $cache->set('123', 'foobar');
+
+        foreach ($cache as $key => $value) {
+            // set variables
+        }
+
+        self::assertSame('123', $key ?? null);
+        self::assertSame('foobar', $value ?? null);
+    }
 }
