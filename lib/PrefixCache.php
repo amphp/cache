@@ -32,7 +32,7 @@ final class PrefixCache implements Cache
     }
 
     /** @inheritdoc */
-    public function set(string $key, string $value, int $ttl = null): Promise
+    public function set(string $key, string $value, ?int $ttl = null): Promise
     {
         return $this->cache->set($this->keyPrefix . $key, $value, $ttl);
     }

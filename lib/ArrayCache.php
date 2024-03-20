@@ -20,7 +20,7 @@ final class ArrayCache implements Cache
      * @param int $gcInterval The frequency in milliseconds at which expired cache entries should be garbage collected.
      * @param int $maxSize The maximum size of cache array (number of elements).
      */
-    public function __construct(int $gcInterval = 5000, int $maxSize = null)
+    public function __construct(int $gcInterval = 5000, ?int $maxSize = null)
     {
         // By using a shared state object we're able to use `__destruct()` for "normal" garbage collection of both this
         // instance and the loop's watcher. Otherwise this object could only be GC'd when the TTL watcher was cancelled
@@ -91,7 +91,7 @@ final class ArrayCache implements Cache
     }
 
     /** @inheritdoc */
-    public function set(string $key, string $value, int $ttl = null): Promise
+    public function set(string $key, string $value, ?int $ttl = null): Promise
     {
         if ($ttl === null) {
             unset($this->sharedState->cacheTimeouts[$key]);

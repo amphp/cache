@@ -141,7 +141,7 @@ final class FileCache implements Cache
     }
 
     /** @inheritdoc */
-    public function set(string $key, string $value, int $ttl = null): Promise
+    public function set(string $key, string $value, ?int $ttl = null): Promise
     {
         if ($ttl < 0) {
             throw new \Error("Invalid cache TTL ({$ttl}); integer >= 0 or null required");
