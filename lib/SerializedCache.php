@@ -63,7 +63,7 @@ final class SerializedCache
      *
      * @see Cache::set()
      */
-    public function set(string $key, $value, int $ttl = null): Promise
+    public function set(string $key, $value, ?int $ttl = null): Promise
     {
         if ($value === null) {
             return new Failure(new CacheException('Cannot store NULL in serialized cache'));

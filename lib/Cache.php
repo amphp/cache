@@ -31,7 +31,7 @@ interface Cache
      *
      * @return Promise<void> Resolves either successfully or fails with a CacheException on failure.
      */
-    public function set(string $key, string $value, int $ttl = null): Promise;
+    public function set(string $key, string $value, ?int $ttl = null): Promise;
 
     /**
      * Deletes a value associated with the given key if it exists.
