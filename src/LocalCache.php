@@ -105,7 +105,7 @@ final class LocalCache implements Cache, \Countable, \IteratorAggregate
 
         unset($this->cache[$key]);
         if (\count($this->cache) === $this->sizeLimit) {
-            /** @var array-key $keyToEvict */
+            /** @var string $keyToEvict */
             $keyToEvict = \array_key_first($this->cache);
             unset($this->cache[$keyToEvict]);
         }
