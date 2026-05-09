@@ -15,28 +15,28 @@
     </projectFiles>
 
     <issueHandlers>
-        <StringIncrement>
+        <MissingOverrideAttribute>
             <errorLevel type="suppress">
                 <directory name="src"/>
             </errorLevel>
-        </StringIncrement>
+        </MissingOverrideAttribute>
 
-        <RedundantConditionGivenDocblockType>
+        <UnusedClass>
             <errorLevel type="suppress">
                 <directory name="src"/>
             </errorLevel>
-        </RedundantConditionGivenDocblockType>
+        </UnusedClass>
+
+        <ClassMustBeFinal>
+            <errorLevel type="suppress">
+                <file name="src/CacheException.php" />
+            </errorLevel>
+        </ClassMustBeFinal>
 
         <DocblockTypeContradiction>
             <errorLevel type="suppress">
                 <directory name="src"/>
             </errorLevel>
         </DocblockTypeContradiction>
-
-        <MissingClosureParamType>
-            <errorLevel type="suppress">
-                <directory name="src"/>
-            </errorLevel>
-        </MissingClosureParamType>
     </issueHandlers>
 </psalm>
